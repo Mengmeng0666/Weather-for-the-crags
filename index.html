@@ -246,10 +246,22 @@ const DEFAULT_CRAGS = [
   { id:'morsbach', name:'Morsbach (bei Kufstein)', lat:47.5536, lon:12.1435,
     faces:[{dir:160,label:'南壁(估计,建议核对)'}],
     routes:[] },
-  { id:'labertal', name:'Labertal (Schönhofen, Regensburg)', lat:49.0333, lon:12.0167,
+  { id:'labertal', name:'Labertal (Schönhofen, Regensburg)', lat:49.0665, lon:11.8735,
     faces:[{dir:200,label:'南西壁'}],
     routes:[] },
-  { id:'frankenjura', name:'Frankenjura (中心区域,含多个岩场)', lat:49.7667, lon:11.2833,
+  { id:'naabtal', name:'Naabtal (bei Nittendorf, Regensburg)', lat:49.0400, lon:11.9300,
+    faces:[{dir:180,label:'南壁(估计,建议核对)'}],
+    routes:[] },
+  { id:'altmuehltal_konstein', name:'Altmühltal — Konstein (Dohlenfelsen)', lat:48.8253, lon:11.0738,
+    faces:[{dir:180,label:'南壁(估计)'}],
+    routes:[] },
+  { id:'altmuehltal_dollnstein', name:'Altmühltal — Dollnstein (Burgsteinfelsen)', lat:48.8688, lon:11.0740,
+    faces:[{dir:180,label:'南壁(估计)'}],
+    routes:[] },
+  { id:'altmuehltal_weltenburg', name:'Altmühltal — Donaudurchbruch/Weltenburg', lat:48.8989, lon:11.8172,
+    faces:[{dir:180,label:'南壁(估计)'}],
+    routes:[] },
+  { id:'frankenjura', name:'Frankenjura (中心代表点,区域内还有上千个独立岩场)', lat:49.7667, lon:11.2833,
     faces:[{dir:180,label:'南壁(区域内朝向差异很大)'}],
     routes:[] }
 ];
@@ -259,8 +271,15 @@ let filter = {type:'all'};
 let map, markers = {};
 
 function load(){
-  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
-  return DEFAULT_CRAGS;
+  let stored = null;
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) stored = JSON.parse(raw); }catch(e){}
+  if(!stored) return JSON.parse(JSON.stringify(DEFAULT_CRAGS));
+  // 迁移:把新版本里加的默认岩场补进已有数据,不覆盖你自己编辑过的内容
+  const existingIds = new Set(stored.map(c=>c.id));
+  DEFAULT_CRAGS.forEach(dc=>{
+    if(!existingIds.has(dc.id)) stored.push(JSON.parse(JSON.stringify(dc)));
+  });
+  return stored;
 }
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(crags)); }
 
