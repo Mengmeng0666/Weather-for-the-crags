@@ -1,0 +1,15 @@
+{
+  "name": "Alpenwand — 岩场条件",
+  "short_name": "Alpenwand",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1c2321",
+  "theme_color": "#1c2321",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c2321'/%3E%3Cpath d='M10 75 L35 35 L50 55 L65 25 L92 75 Z' fill='%23e8871e'/%3E%3Ccircle cx='75' cy='22' r='9' fill='%23f2c14e'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
