@@ -9,6 +9,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c2321'/%3E%3Cpath d='M10 75 L35 35 L50 55 L65 25 L92 75 Z' fill='%23e8871e'/%3E%3Ccircle cx='75' cy='22' r='9' fill='%23f2c14e'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
 <style>
   :root{
@@ -24,199 +26,110 @@
     --sport:#5b8c9e;
     --multi:#c0693f;
     --good:#7fae6e;
+    --mid:#e0b04a;
     --bad:#b6543f;
     --radius:14px;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    -webkit-font-smoothing:antialiased;
-    padding-bottom:60px;
-  }
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);}
+  body{color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
   .mono{font-family:'IBM Plex Mono',monospace;}
   header{
-    padding:28px 20px 18px;
+    padding:20px 20px 14px;
     border-bottom:1px solid var(--line);
-    background:
-      radial-gradient(120% 100% at 100% 0%, rgba(232,135,30,0.10), transparent 60%),
-      var(--bg);
+    background:radial-gradient(120% 100% at 100% 0%, rgba(232,135,30,0.10), transparent 60%), var(--bg);
+    flex:none;
   }
-  header h1{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:26px;
-    font-weight:700;
-    margin:0 0 4px;
-    letter-spacing:-0.01em;
-  }
-  header .sub{
-    color:var(--ink-dim);
-    font-size:13px;
-    font-family:'IBM Plex Mono',monospace;
-  }
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;margin:0 0 4px;letter-spacing:-0.01em;}
+  header .sub{color:var(--ink-dim);font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
   .toolbar{
-    display:flex;
-    gap:8px;
-    padding:14px 20px;
-    overflow-x:auto;
-    border-bottom:1px solid var(--line);
+    display:flex;gap:8px;padding:12px 20px;overflow-x:auto;border-bottom:1px solid var(--line);
+    flex:none;align-items:center;
   }
   .chip{
-    flex:none;
-    padding:7px 13px;
-    border-radius:999px;
-    border:1px solid var(--line);
-    background:var(--panel);
-    color:var(--ink-dim);
-    font-size:12.5px;
-    font-family:'IBM Plex Mono',monospace;
-    cursor:pointer;
-    white-space:nowrap;
+    flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink-dim);font-size:12.5px;font-family:'IBM Plex Mono',monospace;
+    cursor:pointer;white-space:nowrap;
   }
-  .chip.active{
-    background:var(--sun);
-    border-color:var(--sun);
-    color:#1c2321;
-    font-weight:600;
+  .chip.active{background:var(--sun);border-color:var(--sun);color:#1c2321;font-weight:600;}
+  .legend{
+    display:flex;gap:12px;padding:0 20px 12px;font-size:10.5px;color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;flex:none;align-items:center;flex-wrap:wrap;
   }
-  main{padding:16px;max-width:720px;margin:0 auto;}
-  .crag{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    margin-bottom:16px;
-    overflow:hidden;
+  .legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+  #map{flex:1;position:relative;z-index:1;}
+  #map .leaflet-container{background:#12403a;}
+  .crag-marker{
+    display:flex;align-items:center;justify-content:center;
+    width:38px;height:38px;border-radius:50%;
+    border:2.5px solid var(--bg);
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:#101613;
+    box-shadow:0 3px 10px rgba(0,0,0,.5);
   }
-  .crag-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    padding:16px 16px 10px;
-    cursor:pointer;
+  .fab{
+    position:fixed;right:18px;bottom:18px;z-index:1200;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--sun);color:#1c2321;border:none;font-size:26px;font-weight:700;
+    box-shadow:0 6px 18px rgba(0,0,0,.4);
   }
-  .crag-head h2{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:18px;
-    margin:0 0 3px;
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;max-height:82vh;
+    background:var(--panel);border-radius:18px 18px 0 0;
+    transform:translateY(105%);transition:transform .25s ease;
+    z-index:1300;box-shadow:0 -10px 30px rgba(0,0,0,.5);
+    overflow-y:auto;
   }
-  .crag-head .loc{
-    font-size:11.5px;
-    color:var(--ink-dim);
-    font-family:'IBM Plex Mono',monospace;
+  .sheet.open{transform:translateY(0);}
+  .sheet-handle{width:36px;height:4px;background:var(--line);border-radius:2px;margin:10px auto 2px;}
+  .sheet-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1250;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
   }
-  .score{
-    text-align:right;
-    flex:none;
-    margin-left:12px;
-  }
-  .score .val{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:22px;
-    font-weight:600;
-    line-height:1;
-  }
-  .score .lbl{
-    font-size:10px;
-    color:var(--ink-dim);
-    text-transform:uppercase;
-    letter-spacing:.06em;
-  }
-  .contour{
-    height:1px;
-    margin:0 16px;
-    background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px);
-  }
-  .body-grid{
-    display:grid;
-    grid-template-columns:132px 1fr;
-    gap:14px;
-    padding:14px 16px 16px;
-  }
-  @media (max-width:420px){
-    .body-grid{grid-template-columns:110px 1fr;}
-  }
+  .sheet-backdrop.open{opacity:1;pointer-events:auto;}
+
+  .crag-head{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 18px 10px;}
+  .crag-head h2{font-family:'Space Grotesk',sans-serif;font-size:19px;margin:0 0 3px;}
+  .crag-head .loc{font-size:11.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;}
+  .score{text-align:right;flex:none;margin-left:12px;}
+  .score .val{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;line-height:1;}
+  .score .lbl{font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;}
+  .contour{height:1px;margin:0 18px;background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px);}
+  .body-grid{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:14px 18px 16px;}
+  @media (max-width:420px){.body-grid{grid-template-columns:104px 1fr;}}
   .dial-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
   .dial-cap{font-size:10px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;text-align:center;}
   .days{display:flex;flex-direction:column;gap:8px;}
   .day-row{
-    display:grid;
-    grid-template-columns:44px 1fr 52px 60px;
-    align-items:center;
-    gap:8px;
-    font-size:12.5px;
-    padding:6px 8px;
-    border-radius:8px;
-    background:var(--panel-2);
+    display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:8px;
+    font-size:12.5px;padding:8px 9px;border-radius:8px;background:var(--panel-2);
   }
   .day-row .d{font-family:'IBM Plex Mono',monospace;color:var(--ink-dim);}
   .day-row .bar-wrap{height:8px;border-radius:5px;background:#1c2321;overflow:hidden;}
   .day-row .bar{height:100%;border-radius:5px;}
-  .day-row .temp{font-family:'IBM Plex Mono',monospace;text-align:right;}
-  .day-row .sunh{font-family:'IBM Plex Mono',monospace;color:var(--sun-soft);text-align:right;font-size:11.5px;}
-  .routes{padding:0 16px 16px;}
-  .routes summary{
-    cursor:pointer;
-    font-size:12px;
-    color:var(--ink-dim);
-    font-family:'IBM Plex Mono',monospace;
-    padding:6px 0;
-  }
-  .route{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:8px 0;
-    border-top:1px solid var(--line);
-    font-size:13.5px;
-  }
+  .day-row .stats{display:flex;flex-direction:column;gap:2px;align-items:flex-end;font-family:'IBM Plex Mono',monospace;font-size:10.5px;}
+  .day-row .stats .t{color:var(--ink);font-size:12px;}
+  .day-row .stats .extra{display:flex;gap:7px;color:var(--ink-dim);}
+  .day-row .stats .rain{color:#7db8d6;}
+  .day-row .stats .cloud{color:var(--ink-dim);}
+  .day-row .stats .sunh{color:var(--sun-soft);}
+  .routes{padding:0 18px 18px;}
+  .routes summary{cursor:pointer;font-size:12px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;padding:6px 0;}
+  .route{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px;}
   .route .name{font-weight:500;}
-  .route .meta{font-size:11px;color:var(--ink-dim);}
-  .tag{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10.5px;
-    padding:2px 7px;
-    border-radius:999px;
-    margin-left:6px;
-  }
+  .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:2px 7px;border-radius:999px;margin-left:6px;}
   .tag.sport{background:rgba(91,140,158,.2);color:var(--sport);}
   .tag.multi{background:rgba(192,105,63,.2);color:var(--multi);}
   .grade{font-family:'IBM Plex Mono',monospace;color:var(--sun-soft);font-weight:600;}
-  .fab{
-    position:fixed;right:18px;bottom:18px;
-    width:52px;height:52px;border-radius:50%;
-    background:var(--sun);color:#1c2321;
-    border:none;font-size:26px;font-weight:700;
-    box-shadow:0 6px 18px rgba(0,0,0,.4);
-  }
-  .empty{
-    text-align:center;color:var(--ink-dim);
-    padding:60px 20px;font-size:13px;
-  }
-  dialog{
-    border:none;border-radius:16px;
-    background:var(--panel);color:var(--ink);
-    width:min(92vw,480px);padding:0;
-  }
+  .empty{text-align:center;color:var(--ink-dim);padding:22px 20px;font-size:13px;}
+  dialog{border:none;border-radius:16px;background:var(--panel);color:var(--ink);width:min(92vw,480px);padding:0;}
   dialog::backdrop{background:rgba(0,0,0,.6);}
-  .modal-head{
-    padding:16px 18px;border-bottom:1px solid var(--line);
-    display:flex;justify-content:space-between;align-items:center;
-  }
+  .modal-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
   .modal-head h3{margin:0;font-family:'Space Grotesk',sans-serif;font-size:16px;}
   .modal-body{padding:16px 18px;max-height:70vh;overflow-y:auto;}
   label{display:block;font-size:11.5px;color:var(--ink-dim);margin:10px 0 4px;font-family:'IBM Plex Mono',monospace;}
-  input,select,textarea{
-    width:100%;padding:9px 10px;border-radius:8px;
-    border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
-    font-size:13.5px;font-family:'Inter',sans-serif;
-  }
+  input,select,textarea{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font-size:13.5px;font-family:'Inter',sans-serif;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .btn{
-    padding:10px 16px;border-radius:9px;border:1px solid var(--line);
-    background:var(--panel-2);color:var(--ink);font-size:13px;cursor:pointer;
-  }
+  .btn{padding:10px 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font-size:13px;cursor:pointer;}
   .btn.primary{background:var(--sun);border-color:var(--sun);color:#1c2321;font-weight:600;}
   .modal-foot{padding:14px 18px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--line);}
   .route-editor{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;}
@@ -224,20 +137,32 @@
   .del{background:none;border:none;color:var(--bad);font-size:16px;cursor:pointer;}
   .hint{font-size:11px;color:var(--ink-dim);line-height:1.5;margin-top:8px;}
   a{color:var(--glacier);}
+  .foot-actions{display:flex;gap:8px;padding:0 18px 18px;}
 </style>
 </head>
 <body>
 
 <header>
   <h1>Alpenwand</h1>
-  <div class="sub">慕尼黑 · 阿尔卑斯岩场日照 / 天气 / 线路面板</div>
+  <div class="sub">慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路</div>
 </header>
 
 <div class="toolbar" id="filterBar"></div>
+<div class="legend">
+  <span><span class="dot" style="background:var(--good)"></span>今日指数≥70 · 适合去</span>
+  <span><span class="dot" style="background:var(--mid)"></span>40–69 · 看情况</span>
+  <span><span class="dot" style="background:var(--bad)"></span>&lt;40 · 大概率湿/多云</span>
+</div>
 
-<main id="app"></main>
+<div id="map"></div>
 
 <button class="fab" id="addBtn" title="添加岩场">+</button>
+
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div id="sheetContent"></div>
+</div>
 
 <dialog id="editDialog">
   <form method="dialog">
@@ -270,76 +195,74 @@
       <button class="btn" id="tcTry" type="button" style="margin-top:12px;">尝试抓取</button>
       <div class="hint" id="tcResult"></div>
       <div class="hint">
-        申请入口: <a href="https://www.thecrag.com/en/article/api" target="_blank">thecrag.com/en/article/api</a><br>
-        如果浏览器端直连失败(大概率因为 CORS 被拦),抓取这块可以先手动在下方"编辑"里把线路信息填进去,之后我们再单独给你写一个小后端代理。
+        申请入口: <a href="https://www.thecrag.com/en/article/api" target="_blank">thecrag.com/en/article/api</a>
       </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn" value="cancel" type="submit">关闭</button>
-    </div>
+    <div class="modal-foot"><button class="btn" value="cancel" type="submit">关闭</button></div>
   </form>
 </dialog>
 
 <script>
-const STORAGE_KEY = 'alpenwand_crags_v1';
+const STORAGE_KEY = 'alpenwand_crags_v2';
 
+// 坐标为查证后的大致位置(岩场范围较大,取代表性入口点);
+// 壁面朝向多数为估计值,不完全确定的已在名称/说明里注明,建议实地核对后在"编辑"里修正。
 const DEFAULT_CRAGS = [
-  {
-    id:'kochel', name:'Kesselwand (Kochel)', lat:47.6167, lon:11.3667,
+  { id:'kochel', name:'Kesselwand (Kochel)', lat:47.6167, lon:11.3667,
     faces:[{dir:180,label:'南壁'},{dir:90,label:'东壁'}],
     routes:[
       {name:'Direttissima', grade:'6a', type:'sport', dir:180},
       {name:'Kesselkante', grade:'5c', type:'sport', dir:180},
       {name:'Alte Suedwand', grade:'V+', type:'multi', pitches:6, dir:180}
-    ]
-  },
-  {
-    id:'risserkogel', name:'Risserkogel', lat:47.6167, lon:11.7833,
+    ]},
+  { id:'risserkogel', name:'Risserkogel', lat:47.6167, lon:11.7833,
     faces:[{dir:225,label:'西南壁'}],
     routes:[
       {name:'Normalweg Klettersteig', grade:'B/C', type:'multi', pitches:8, dir:225},
       {name:'SW-Kante', grade:'IV', type:'multi', pitches:5, dir:225}
-    ]
-  },
-  {
-    id:'kaiser', name:'Wilder Kaiser (Kaisergebirge)', lat:47.5333, lon:12.3167,
+    ]},
+  { id:'kaiser', name:'Wilder Kaiser (Kaisergebirge)', lat:47.5333, lon:12.3167,
     faces:[{dir:180,label:'南壁'},{dir:270,label:'西壁'}],
     routes:[
       {name:'Fleischbank Ostverschneidung', grade:'VI', type:'multi', pitches:12, dir:90},
       {name:'Pumprisse', grade:'VIII-', type:'multi', pitches:8, dir:180},
       {name:'Sportklettergarten Route', grade:'7a', type:'sport', dir:180}
-    ]
-  },
-  {
-    id:'karwendel', name:'Karwendel (Kirchlspitzen)', lat:47.4167, lon:11.4667,
+    ]},
+  { id:'karwendel', name:'Karwendel (Kirchlspitzen)', lat:47.4167, lon:11.4667,
     faces:[{dir:200,label:'南壁'}],
-    routes:[
-      {name:'Watzmannblick', grade:'V', type:'multi', pitches:7, dir:200}
-    ]
-  },
-  {
-    id:'arco', name:'Arco / Gardasee', lat:45.9167, lon:10.8833,
+    routes:[{name:'Watzmannblick', grade:'V', type:'multi', pitches:7, dir:200}]},
+  { id:'arco', name:'Arco / Gardasee', lat:45.9167, lon:10.8833,
     faces:[{dir:90,label:'东壁'},{dir:180,label:'南壁'}],
     routes:[
       {name:'Colodri Klassiker', grade:'6b', type:'sport', dir:90},
       {name:'Cima SAT', grade:'IV', type:'multi', pitches:10, dir:180}
-    ]
-  }
+    ]},
+  { id:'gramai', name:'Gramai (Sonnjoch-Südseite, Achensee)', lat:47.4114, lon:11.7186,
+    faces:[{dir:180,label:'南壁'}],
+    routes:[] },
+  { id:'flintsbach', name:'Flintsbach am Inn', lat:47.6900, lon:12.1130,
+    faces:[{dir:180,label:'南壁(估计,建议核对)'}],
+    routes:[] },
+  { id:'morsbach', name:'Morsbach (bei Kufstein)', lat:47.5536, lon:12.1435,
+    faces:[{dir:160,label:'南壁(估计,建议核对)'}],
+    routes:[] },
+  { id:'labertal', name:'Labertal (Schönhofen, Regensburg)', lat:49.0333, lon:12.0167,
+    faces:[{dir:200,label:'南西壁'}],
+    routes:[] },
+  { id:'frankenjura', name:'Frankenjura (中心区域,含多个岩场)', lat:49.7667, lon:11.2833,
+    faces:[{dir:180,label:'南壁(区域内朝向差异很大)'}],
+    routes:[] }
 ];
 
 let crags = load();
 let filter = {type:'all'};
+let map, markers = {};
 
 function load(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
   return DEFAULT_CRAGS;
 }
-function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(crags));
-}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(crags)); }
 
 function dirToCompass(deg){
   const dirs = ['北','北东','东','南东','南','南西','西','北西'];
@@ -357,27 +280,19 @@ async function fetchWeather(lat, lon){
     const data = await res.json();
     weatherCache[key] = data;
     return data;
-  }catch(e){
-    return null;
-  }
+  }catch(e){ return null; }
 }
 
-// --- sun exposure ---
-// 粗略估算某天某朝向的直射日照小时数:
-// 对当天日出到日落之间按小时采样太阳方位角,
-// 若方位角落在该朝向 ±95° 范围内,记为"受光"。
+// --- sun exposure (简化模型:按太阳方位角是否落在壁面朝向±95°内估算受光小时数,未计入地形互相遮挡) ---
 function sunHoursForFace(date, lat, lon, faceDir){
   const times = SunCalc.getTimes(date, lat, lon);
   if(!times.sunrise || !times.sunset || isNaN(times.sunrise)) return 0;
   let hours = 0;
-  const start = times.sunrise.getTime();
-  const end = times.sunset.getTime();
-  const step = 30*60*1000; // 30分钟采样
+  const start = times.sunrise.getTime(), end = times.sunset.getTime(), step = 30*60*1000;
   for(let t=start; t<=end; t+=step){
     const pos = SunCalc.getPosition(new Date(t), lat, lon);
-    if(pos.altitude < 0.05) continue; // 太阳太低,山体多半已遮挡
-    let az = (pos.azimuth * 180/Math.PI + 180); // SunCalc: 0=南, 转成 0=北的罗盘角
-    az = (az) % 360;
+    if(pos.altitude < 0.05) continue;
+    let az = (pos.azimuth * 180/Math.PI + 180) % 360;
     let diff = Math.abs(az - faceDir);
     if(diff > 180) diff = 360 - diff;
     if(diff <= 95) hours += 0.5;
@@ -386,17 +301,17 @@ function sunHoursForFace(date, lat, lon, faceDir){
 }
 
 function drawDial(faces, date, lat, lon){
-  const size = 120, c = size/2, r = 44;
+  const size = 110, c = size/2, r = 40;
   let marks = '';
   faces.forEach(f=>{
     const rad = (f.dir-90)*Math.PI/180;
-    const x1 = c + Math.cos(rad)*(r-14), y1 = c + Math.sin(rad)*(r-14);
-    const x2 = c + Math.cos(rad)*(r+8), y2 = c + Math.sin(rad)*(r+8);
+    const x1 = c + Math.cos(rad)*(r-13), y1 = c + Math.sin(rad)*(r-13);
+    const x2 = c + Math.cos(rad)*(r+7), y2 = c + Math.sin(rad)*(r+7);
     const h = sunHoursForFace(date, lat, lon, f.dir);
     const lit = h >= 2;
     marks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${lit?'var(--sun)':'var(--line)'}" stroke-width="4" stroke-linecap="round"/>`;
-    const lx = c + Math.cos(rad)*(r+22), ly = c + Math.sin(rad)*(r+22);
-    marks += `<text x="${lx}" y="${ly}" fill="${lit?'var(--sun-soft)':'var(--ink-dim)'}" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">${f.label||dirToCompass(f.dir)}</text>`;
+    const lx = c + Math.cos(rad)*(r+20), ly = c + Math.sin(rad)*(r+20);
+    marks += `<text x="${lx}" y="${ly}" fill="${lit?'var(--sun-soft)':'var(--ink-dim)'}" font-size="8.5" text-anchor="middle" font-family="IBM Plex Mono">${f.label?f.label.replace(/[（(].*?[）)]/,''):dirToCompass(f.dir)}</text>`;
   });
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--line)" stroke-width="1.5"/>
@@ -405,140 +320,167 @@ function drawDial(faces, date, lat, lon){
   </svg>`;
 }
 
+// 今日指数:100分起,按降水概率和云量扣分。
+// 降水概率影响更大(权重0.9,湿滑/淋雨风险直接相关),云量影响较小(权重0.35,主要影响日照和体感温度)。
+// ≥70 记为"好天"(绿色),40-69 为"一般"(黄色),<40 为"差"(红色,大概率湿或阴)。
 function scoreFor(day){
-  if(!day) return {val:'—', cls:''};
-  const rain = day.precip ?? 0;
-  const cloud = day.cloud ?? 0;
+  if(!day) return {val:null, cls:'', color:'var(--ink-dim)'};
+  const rain = day.precip ?? 0, cloud = day.cloud ?? 0;
   let s = 100 - rain*0.9 - cloud*0.35;
   s = Math.max(0, Math.min(100, Math.round(s)));
-  let cls = s>=70?'good':(s>=40?'':'bad');
-  return {val:s, cls};
+  let cls = s>=70?'good':(s>=40?'mid':'bad');
+  let color = s>=70?'var(--good)':(s>=40?'var(--mid)':'var(--bad)');
+  return {val:s, cls, color};
 }
 
-async function render(){
-  const app = document.getElementById('app');
+function markerColor(c, wx){
+  if(!wx || !wx.daily) return 'var(--ink-dim)';
+  const day = {precip:wx.daily.precipitation_probability_max[0], cloud:wx.daily.cloud_cover_mean[0]};
+  return scoreFor(day).color;
+}
+
+async function buildSheetHTML(c){
+  const wx = await fetchWeather(c.lat, c.lon);
+  let days = [];
+  if(wx && wx.daily){
+    const dd = wx.daily;
+    for(let i=0;i<dd.time.length;i++){
+      days.push({date:dd.time[i], tmax:dd.temperature_2m_max[i], tmin:dd.temperature_2m_min[i],
+        precip:dd.precipitation_probability_max[i], cloud:dd.cloud_cover_mean[i]});
+    }
+  }
+  const todaySunHours = c.faces.map(f=>({face:f, h: sunHoursForFace(new Date(), c.lat, c.lon, f.dir)})).sort((a,b)=>b.h-a.h);
+  const bestFace = todaySunHours[0];
+  const sc = scoreFor(days[0]);
+
+  const dayRows = days.map(d=>{
+    const s = scoreFor(d);
+    const wd = new Date(d.date).toLocaleDateString('zh-CN',{weekday:'short'});
+    const sunH = c.faces.length ? Math.max(...c.faces.map(f=>sunHoursForFace(new Date(d.date), c.lat, c.lon, f.dir))) : 0;
+    return `<div class="day-row">
+      <div class="d">${wd}</div>
+      <div class="bar-wrap"><div class="bar" style="width:${s.val}%;background:${s.color}"></div></div>
+      <div class="stats">
+        <div class="t">${Math.round(d.tmin)}° / ${Math.round(d.tmax)}°</div>
+        <div class="extra">
+          <span class="rain">💧${Math.round(d.precip)}%</span>
+          <span class="cloud">☁${Math.round(d.cloud)}%</span>
+          <span class="sunh">☀${sunH.toFixed(1)}h</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const routesByType = { sport: c.routes.filter(r=>r.type==='sport'), multi: c.routes.filter(r=>r.type==='multi') };
+  function routeList(list){
+    return list.map(r=>`
+      <div class="route">
+        <div><span class="name">${r.name}</span><span class="tag ${r.type}">${r.type==='sport'?'运动攀':'多段 ×'+(r.pitches||'?')}</span></div>
+        <div><span class="grade">${r.grade}</span><span class="meta"> · ${dirToCompass(r.dir)}向</span></div>
+      </div>`).join('');
+  }
+  const noRoutes = c.routes.length===0 ? `<div class="hint">还没有线路数据,点下面"编辑"手动添加。</div>` : '';
+
+  return `
+    <div class="crag-head">
+      <div>
+        <h2>${c.name}</h2>
+        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · 今日最佳朝向 ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}h 直射)</div>
+      </div>
+      <div class="score">
+        <div class="val" style="color:${sc.color}">${sc.val ?? '—'}</div>
+        <div class="lbl">今日指数</div>
+      </div>
+    </div>
+    <div class="contour"></div>
+    <div class="body-grid">
+      <div class="dial-wrap">
+        ${drawDial(c.faces, new Date(), c.lat, c.lon)}
+        <div class="dial-cap">壁面朝向 · 今日日照</div>
+      </div>
+      <div class="days">${dayRows || '<div class="hint">天气数据加载失败,稍后重试</div>'}</div>
+    </div>
+    <div class="routes">
+      ${routesByType.sport.length?`<details open><summary>运动攀线路 (${routesByType.sport.length})</summary>${routeList(routesByType.sport)}</details>`:''}
+      ${routesByType.multi.length?`<details open><summary>多段线路 (${routesByType.multi.length})</summary>${routeList(routesByType.multi)}</details>`:''}
+      ${noRoutes}
+    </div>
+    <div class="foot-actions">
+      <button class="btn" data-edit="${c.id}">编辑</button>
+      <button class="btn" data-del="${c.id}" style="color:var(--bad)">删除</button>
+    </div>
+  `;
+}
+
+async function openSheet(id){
+  const c = crags.find(x=>x.id===id);
+  if(!c) return;
+  const sheet = document.getElementById('sheet');
+  const content = document.getElementById('sheetContent');
+  content.innerHTML = `<div class="empty">加载 ${c.name} 中…</div>`;
+  document.getElementById('sheetBackdrop').classList.add('open');
+  sheet.classList.add('open');
+  content.innerHTML = await buildSheetHTML(c);
+  content.querySelector('[data-edit]').onclick = ()=>{ closeSheet(); openEditor(id); };
+  content.querySelector('[data-del]').onclick = ()=>{
+    if(confirm('确定删除这个岩场?')){
+      crags = crags.filter(x=>x.id!==id);
+      save(); closeSheet(); rebuildMarkers();
+    }
+  };
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('open');
+  document.getElementById('sheetBackdrop').classList.remove('open');
+}
+document.getElementById('sheetBackdrop').onclick = closeSheet;
+
+// --- map ---
+function initMap(){
+  map = L.map('map', {zoomControl:true}).setView([47.6, 11.6], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:18,
+    attribution:'&copy; OpenStreetMap contributors'
+  }).addTo(map);
+}
+
+async function rebuildMarkers(){
+  Object.values(markers).forEach(m=>map.removeLayer(m));
+  markers = {};
   const filtered = crags.filter(c=>{
     if(filter.type==='all') return true;
     return c.routes.some(r=>r.type===filter.type);
   });
-  if(filtered.length===0){
-    app.innerHTML = `<div class="empty">还没有岩场,点右下角 “+” 添加一个吧。</div>`;
-    return;
-  }
-  app.innerHTML = filtered.map(c=>`<div class="crag" id="card-${c.id}"><div class="empty" style="padding:24px">加载 ${c.name} 天气中…</div></div>`).join('');
-
   for(const c of filtered){
     const wx = await fetchWeather(c.lat, c.lon);
-    const card = document.getElementById(`card-${c.id}`);
-    if(!card) continue;
-
-    let days = [];
-    if(wx && wx.daily){
-      const dd = wx.daily;
-      for(let i=0;i<dd.time.length;i++){
-        days.push({
-          date: dd.time[i],
-          tmax: dd.temperature_2m_max[i],
-          tmin: dd.temperature_2m_min[i],
-          precip: dd.precipitation_probability_max[i],
-          cloud: dd.cloud_cover_mean[i]
-        });
-      }
-    }
-
-    const todaySunHours = c.faces.map(f=>({
-      face:f, h: sunHoursForFace(new Date(), c.lat, c.lon, f.dir)
-    })).sort((a,b)=>b.h-a.h);
-    const bestFace = todaySunHours[0];
-    const sc = scoreFor(days[0]);
-
-    const dayRows = days.map(d=>{
-      const s = scoreFor(d);
-      const wd = new Date(d.date).toLocaleDateString('zh-CN',{weekday:'short'});
-      const sunH = c.faces.length ? Math.max(...c.faces.map(f=>sunHoursForFace(new Date(d.date), c.lat, c.lon, f.dir))) : 0;
-      const barColor = s.cls==='good'?'var(--good)':(s.cls==='bad'?'var(--bad)':'var(--sun-soft)');
-      return `<div class="day-row">
-        <div class="d">${wd}</div>
-        <div class="bar-wrap"><div class="bar" style="width:${s.val}%;background:${barColor}"></div></div>
-        <div class="temp">${Math.round(d.tmin)}° / ${Math.round(d.tmax)}°</div>
-        <div class="sunh">☀ ${sunH.toFixed(1)}h</div>
-      </div>`;
-    }).join('');
-
-    const routesByType = {
-      sport: c.routes.filter(r=>r.type==='sport'),
-      multi: c.routes.filter(r=>r.type==='multi')
-    };
-    function routeList(list){
-      return list.map(r=>`
-        <div class="route">
-          <div>
-            <span class="name">${r.name}</span>
-            <span class="tag ${r.type}">${r.type==='sport'?'运动攀':'多段 ×'+(r.pitches||'?')}</span>
-          </div>
-          <div>
-            <span class="grade">${r.grade}</span>
-            <span class="meta"> · ${dirToCompass(r.dir)}向</span>
-          </div>
-        </div>`).join('');
-    }
-
-    card.innerHTML = `
-      <div class="crag-head" data-toggle="${c.id}">
-        <div>
-          <h2>${c.name}</h2>
-          <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · 今日最佳朝向 ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}h 直射)</div>
-        </div>
-        <div class="score">
-          <div class="val" style="color:${sc.cls==='good'?'var(--good)':sc.cls==='bad'?'var(--bad)':'var(--sun-soft)'}">${sc.val}</div>
-          <div class="lbl">今日指数</div>
-        </div>
-      </div>
-      <div class="contour"></div>
-      <div class="body-grid">
-        <div class="dial-wrap">
-          ${drawDial(c.faces, new Date(), c.lat, c.lon)}
-          <div class="dial-cap">壁面朝向 · 今日日照</div>
-        </div>
-        <div class="days">${dayRows || '<div class="hint">天气数据加载失败,稍后重试</div>'}</div>
-      </div>
-      <div class="routes">
-        ${routesByType.sport.length?`<details open><summary>运动攀线路 (${routesByType.sport.length})</summary>${routeList(routesByType.sport)}</details>`:''}
-        ${routesByType.multi.length?`<details open><summary>多段线路 (${routesByType.multi.length})</summary>${routeList(routesByType.multi)}</details>`:''}
-        <div style="margin-top:10px;display:flex;gap:8px;">
-          <button class="btn" data-edit="${c.id}" style="font-size:12px;padding:6px 12px;">编辑</button>
-          <button class="btn" data-del="${c.id}" style="font-size:12px;padding:6px 12px;color:var(--bad)">删除</button>
-        </div>
-      </div>
-    `;
+    const color = markerColor(c, wx);
+    const score = (wx && wx.daily) ? scoreFor({precip:wx.daily.precipitation_probability_max[0], cloud:wx.daily.cloud_cover_mean[0]}).val : '—';
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="crag-marker" style="background:${color}">${score}</div>`,
+      iconSize:[38,38], iconAnchor:[19,19]
+    });
+    const m = L.marker([c.lat, c.lon], {icon}).addTo(map);
+    m.bindTooltip(c.name, {direction:'top', offset:[0,-16]});
+    m.on('click', ()=>openSheet(c.id));
+    markers[c.id] = m;
   }
-
-  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
-  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
-    if(confirm('确定删除这个岩场?')){
-      crags = crags.filter(c=>c.id!==b.dataset.del);
-      save(); render();
-    }
-  });
 }
 
-// --- filter bar ---
 function renderFilterBar(){
   const bar = document.getElementById('filterBar');
   const opts = [['all','全部'],['sport','运动攀'],['multi','多段线路']];
   bar.innerHTML = opts.map(([k,l])=>`<div class="chip ${filter.type===k?'active':''}" data-f="${k}">${l}</div>`).join('')
     + `<div class="chip" id="importChip">↓ theCrag 导入</div>`;
   bar.querySelectorAll('[data-f]').forEach(el=>{
-    el.onclick = ()=>{ filter.type = el.dataset.f; renderFilterBar(); render(); };
+    el.onclick = ()=>{ filter.type = el.dataset.f; renderFilterBar(); rebuildMarkers(); };
   });
   document.getElementById('importChip').onclick = ()=>document.getElementById('importDialog').showModal();
 }
 
 // --- editor ---
-let editingId = null;
 function openEditor(id){
-  editingId = id;
-  const c = id ? crags.find(x=>x.id===id) : {id:'', name:'', lat:47.5, lon:11.5, faces:[{dir:180,label:'南壁'}], routes:[]};
+  const c = id ? crags.find(x=>x.id===id) : {id:'', name:'', lat:47.8, lon:11.5, faces:[{dir:180,label:'南壁'}], routes:[]};
   document.getElementById('editTitle').textContent = id ? '编辑岩场' : '添加岩场';
   document.getElementById('editBody').innerHTML = `
     <label>名称</label>
@@ -547,7 +489,7 @@ function openEditor(id){
       <div><label>纬度 (lat)</label><input id="f-lat" value="${c.lat||''}"></div>
       <div><label>经度 (lon)</label><input id="f-lon" value="${c.lon||''}"></div>
     </div>
-    <label>壁面朝向(用于日照计算,多个用逗号分隔,单位度,0=北 90=东 180=南 270=西)</label>
+    <label>壁面朝向(用于日照计算,多个用逗号分隔,0=北 90=东 180=南 270=西)</label>
     <input id="f-faces" value="${c.faces.map(f=>f.dir).join(',')}">
     <div class="route-editor">
       <label style="margin-top:0">线路列表</label>
@@ -567,8 +509,7 @@ function openEditor(id){
           <option value="multi" ${r.type==='multi'?'selected':''}>多段</option>
         </select>
         <button class="del" data-rm="${i}" type="button">✕</button>
-      </div>
-    `).join('');
+      </div>`).join('');
     linesWrap.querySelectorAll('input,select').forEach(el=>{
       el.onchange = ()=>{ localRoutes[el.dataset.i][el.dataset.k] = el.value; };
     });
@@ -593,24 +534,14 @@ function openEditor(id){
     const faceDirs = document.getElementById('f-faces').value.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
     const faces = faceDirs.length ? faceDirs.map(d=>({dir:d, label:dirToCompass(d)})) : [{dir:180,label:'南壁'}];
     localRoutes.forEach(r=>{ if(!r.dir) r.dir = faces[0].dir; });
-    const newCrag = {
-      id: id || ('crag_'+Date.now()),
-      name, lat, lon, faces,
-      routes: localRoutes.filter(r=>r.name)
-    };
-    if(id){
-      crags = crags.map(x=>x.id===id?newCrag:x);
-    }else{
-      crags.push(newCrag);
-    }
+    const newCrag = { id: id || ('crag_'+Date.now()), name, lat, lon, faces, routes: localRoutes.filter(r=>r.name) };
+    if(id){ crags = crags.map(x=>x.id===id?newCrag:x); } else { crags.push(newCrag); }
     save();
-    render();
+    rebuildMarkers();
   };
 }
-
 document.getElementById('addBtn').onclick = ()=>openEditor(null);
 
-// theCrag import attempt
 document.getElementById('tcTry').onclick = async ()=>{
   const key = document.getElementById('tcKey').value.trim();
   const node = document.getElementById('tcNode').value.trim();
@@ -622,12 +553,13 @@ document.getElementById('tcTry').onclick = async ()=>{
     const text = await res.text();
     out.textContent = '返回状态 '+res.status+': '+text.slice(0,300);
   }catch(e){
-    out.textContent = '请求失败(大概率是 CORS 被浏览器拦截): '+e.message+'。这种情况需要一个小后端代理服务器来转发请求,不能纯前端直连。';
+    out.textContent = '请求失败(大概率是 CORS 被浏览器拦截): '+e.message;
   }
 };
 
 renderFilterBar();
-render();
+initMap();
+rebuildMarkers();
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
