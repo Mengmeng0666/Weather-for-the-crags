@@ -240,9 +240,44 @@ const DEFAULT_CRAGS = [
       {name:'Colodri Klassiker', grade:'6b', type:'sport', dir:90},
       {name:'Cima SAT', grade:'IV', type:'multi', pitches:10, dir:180}
     ]},
+  // Gramai 数据来源:climbers-paradise.com(官方 Tirol 攀岩旅游网站),难度用法国制(和 Arco 一套,不用换算)。
+  // A. K. Karwendelwind 的难度网站原文标了问号("? (6b)"),不是我们不确定,如实保留问号。
   { id:'gramai', name:'Gramai (Sonnjoch-Südseite, Achensee)', lat:47.4114, lon:11.7186,
-    faces:[{dir:180,label:'南壁'}],
-    routes:[] },
+    faces:[
+      {dir:180,label:'南壁(Sonnjoch 主岩壁,多段路线)'},
+      {dir:270,label:'西壁(A. K. Karwendelwind)'},
+      {dir:135,label:'南东壁(Gramai Wasserfall 运动攀区)'}
+    ],
+    routes:[
+      {name:'Rock it', grade:'6a+', type:'multi', pitches:3, dir:180},
+      {name:'How do you do?', grade:'5b', type:'multi', pitches:6, dir:180},
+      {name:'Strom der Zeit', grade:'6a', type:'multi', pitches:5, dir:180},
+      {name:'The beautiful seeress', grade:'6a', type:'multi', pitches:5, dir:180},
+      {name:'Paparazzi im Rücken', grade:'6a', type:'multi', pitches:5, dir:180},
+      {name:'Ein starkes Duo', grade:'6b+', type:'multi', pitches:4, dir:180},
+      {name:'Verschneidung AT', grade:'7a', type:'multi', pitches:3, dir:180},
+      {name:'Whiskey in the Jar', grade:'7a', type:'multi', pitches:5, dir:180},
+      {name:'Lost Elysion', grade:'4b', type:'multi', pitches:4, dir:180},
+      {name:'Gipfeltreffen im Megastore', grade:'5c', type:'multi', pitches:4, dir:180},
+      {name:'Schwesterherz', grade:'6a+', type:'multi', pitches:3, dir:180},
+      {name:'Herzschlag der Leidenschaft', grade:'7a+', type:'multi', pitches:32, dir:180},
+      {name:'Morgenrot', grade:'5c', type:'multi', pitches:8, dir:180},
+      {name:'Lebenstraum', grade:'5c', type:'multi', pitches:7, dir:180},
+      {name:'Stilles Land', grade:'6a', type:'multi', pitches:16, dir:180},
+      {name:'Birke Links', grade:'6c+', type:'multi', pitches:9, dir:180},
+      {name:'A. K. Karwendelwind', grade:'6b?', type:'multi', pitches:13, dir:270},
+
+      {name:'Creek-Crag', grade:'6c', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor A'},
+      {name:'Feuerwasser', grade:'6b', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor A'},
+      {name:'Hungry Hungary', grade:'6b', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor A'},
+      {name:'Riverside', grade:'6b', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor A'},
+
+      {name:'Canyoningblick', grade:'6a+', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor B'},
+      {name:'Wasserspiel', grade:'6a', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor B'},
+      {name:'Wasserläufer', grade:'6a', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor B'},
+      {name:'Wasserkraft', grade:'7a', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor B'},
+      {name:'Panorama', grade:'6a+', type:'sport', dir:135, sector:'Gramai Wasserfall Sektor B'}
+    ] },
   { id:'flintsbach', name:'Flintsbach am Inn', lat:47.6900, lon:12.1130,
     faces:[{dir:180,label:'南壁(估计,建议核对)'}],
     routes:[] },
