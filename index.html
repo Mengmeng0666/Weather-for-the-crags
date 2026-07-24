@@ -252,9 +252,27 @@ const DEFAULT_CRAGS = [
   { id:'naabtal', name:'Naabtal (bei Nittendorf, Regensburg)', lat:49.0400, lon:11.9300,
     faces:[{dir:180,label:'南壁(估计,建议核对)'}],
     routes:[] },
-  { id:'kallmuenz', name:'Kallmünz (bei Regensburg)', lat:49.1614, lon:11.9925,
-    faces:[{dir:180,label:'南壁(估计,建议核对)'}],
-    routes:[] },
+  // Kallmünz 数据来源:juraclimbs.de(该网站给出了每面岩壁的坐标与朝向"Exposition",非估计值)。
+  // 坐标取村子附近主岩壁群(Grüner Pfeiler / Kellerfels / Vilstalwände / Hundskopf)的平均位置。
+  // 实际情况:这一片绝大多数岩壁朝北/西北/东北,常年背阴——夏天凉快适合去,但按本 App 的"日照"算法会显得分数偏低,这是真实情况不是 bug。
+  // 下面的线路是从各分区里选的代表性示例(共167+条已收录线路,这里只挑了几条),难度用当地惯例的 UIAA 制(5、6+、8- 这种写法,不是法国制的 6a/7a)。
+  { id:'kallmuenz', name:'Kallmünz (bei Regensburg)', lat:49.1652, lon:11.9401,
+    faces:[
+      {dir:0,label:'北壁(Nord,主岩壁群)'},
+      {dir:315,label:'西北壁(Zoo 区)'},
+      {dir:45,label:'东北壁(Roter Fels)'}
+    ],
+    routes:[
+      {name:'Grüner Pfeiler', grade:'6+', type:'sport', dir:0},
+      {name:'Sindbads Reisen', grade:'8/8+', type:'sport', dir:0},
+      {name:'Mein Name ist Giuliano', grade:'7/7+', type:'sport', dir:0},
+      {name:'Kellersturz', grade:'6', type:'sport', dir:0},
+      {name:'Kondensator', grade:'8-', type:'sport', dir:0},
+      {name:'Querzahnmolch', grade:'6-', type:'sport', dir:315},
+      {name:'Nashorn', grade:'7+/8-', type:'sport', dir:315},
+      {name:'Gelbfieber', grade:'6', type:'sport', dir:45},
+      {name:'Rockhistory', grade:'9-', type:'sport', dir:45}
+    ] },
   { id:'altmuehltal_konstein', name:'Altmühltal — Konstein (Dohlenfelsen)', lat:48.8253, lon:11.0738,
     faces:[{dir:180,label:'南壁(估计)'}],
     routes:[] },
