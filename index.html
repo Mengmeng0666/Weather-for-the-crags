@@ -3578,6 +3578,21 @@ function markerColor(c, wx){
   return scoreFor(day).color;
 }
 
+// "今日最佳朝向"不能只看晒太阳时长——夏天暴晒的南墙反而难受(石头烫手、体感差),冬天才是晒得越久越好。
+// 阈值凭经验粗略定的:最高温≥26°C 算"热"(找阴面),≤12°C 算"冷"(找阳面),中间正常按晒太阳时长排。没有天气数据时退回原来的纯晒太阳时长排序。
+function pickBestFace(sunHoursList, tmax){
+  if(!sunHoursList.length) return null;
+  if(tmax==null) return [...sunHoursList].sort((a,b)=>b.h-a.h)[0];
+  if(tmax>=26) return [...sunHoursList].sort((a,b)=>a.h-b.h)[0]; // 热:优先阴面
+  return [...sunHoursList].sort((a,b)=>b.h-a.h)[0]; // 冷/常温:优先晒得久
+}
+function bestFaceReason(tmax){
+  if(tmax==null) return '';
+  if(tmax>=26) return ' · 高温,推荐找阴面';
+  if(tmax<=12) return ' · 低温,推荐晒太阳保暖';
+  return '';
+}
+
 async function buildSheetHTML(c){
   const wx = await fetchWeather(c.lat, c.lon);
   let days = [];
@@ -3588,8 +3603,8 @@ async function buildSheetHTML(c){
         precip:dd.precipitation_probability_max[i], cloud:dd.cloud_cover_mean[i]});
     }
   }
-  const todaySunHours = c.faces.map(f=>({face:f, h: sunHoursForFace(new Date(), c.lat, c.lon, f.dir)})).sort((a,b)=>b.h-a.h);
-  const bestFace = todaySunHours[0];
+  const todaySunHours = c.faces.map(f=>({face:f, h: sunHoursForFace(new Date(), c.lat, c.lon, f.dir)}));
+  const bestFace = pickBestFace(todaySunHours, days[0]?.tmax);
   const sc = scoreFor(days[0]);
 
   const dayRows = days.map(d=>{
@@ -3643,7 +3658,7 @@ async function buildSheetHTML(c){
     <div class="crag-head">
       <div>
         <h2>${c.name}</h2>
-        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · 今日最佳朝向 ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}h 直射)</div>
+        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · 今日最佳朝向 ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}h 直射${bestFaceReason(days[0]?.tmax)})</div>
       </div>
       <div class="score">
         <div class="val" style="color:${sc.color}">${sc.val ?? '—'}</div>
