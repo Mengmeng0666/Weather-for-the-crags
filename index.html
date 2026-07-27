@@ -66,6 +66,17 @@
     font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:#101613;
     box-shadow:0 3px 10px rgba(0,0,0,.5);
   }
+  .hut-marker{
+    display:flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:8px;
+    background:var(--panel-2);border:2px solid var(--sun-soft);
+    font-size:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,.5);
+  }
+  .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:10px;}
+  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13px;margin:10px 12px;}
+  .leaflet-popup-tip{background:var(--panel);}
+  .leaflet-popup-close-button{color:var(--ink-dim)!important;}
   .fab{
     position:fixed;right:18px;bottom:18px;z-index:1200;
     width:52px;height:52px;border-radius:50%;
@@ -2375,7 +2386,68 @@ const DEFAULT_CRAGS = [
     ] },
   { id:'frankenjura', name:'Frankenjura (中心代表点,区域内还有上千个独立岩场)', lat:49.7667, lon:11.2833,
     faces:[{dir:180,label:'南壁(区域内朝向差异很大)'}],
-    routes:[] }
+    routes:[] },
+  // Gimpelhaus 数据来源:climbers-paradise.com。两片攀岩区都在山屋附近/上方,没有单独更精确的坐标,
+  // 这里坐标在山屋(1659m,见下面 DEFAULT_HUTS)基础上稍微往山上挪了一点,纯粹是为了地图上岩场圆点和小房子图标不重叠,不代表精确位置。
+  // "Die verbotene Stadt"官网说朝向"北(阴,长线路)和南(短,晒得到)混合",没细分到每条线路,这里统一按北处理,只是显示用,不代表每条都朝北。
+  // 2条因为没名字/没难度跳过了(没编造)。Marco Polo 那条的"6b+"写法是原网站给的,和其他条目风格不一样,原样保留没有改。
+  { id:'gimpelhaus', name:'Gimpelhaus (Tannheimer Tal)', lat:47.4908, lon:10.6018,
+    faces:[
+      {dir:180,label:'南壁(Etscherwand 运动攀花园)'},
+      {dir:0,label:'北壁(Die verbotene Stadt,部分南向,官网未细分到每条线路)'}
+    ],
+    routes:[
+      {name:'Maja', grade:'5b', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'Feuertaufe', grade:'5a+', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'Strebär', grade:'5c', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'Lehrer Lämpel', grade:'6a', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'NaNe', grade:'5b', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'Sternchen', grade:'5a', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'Giacomo', grade:'5a+', type:'sport', dir:180, sector:'Etscherwand'},
+      {name:'Willi', grade:'5b', type:'sport', dir:180, sector:'Etscherwand'},
+
+      {name:'Langer Marsch', grade:'5-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Der letzte Kaiser', grade:'7-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Der große Vorsitzende', grade:'7-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Ulaanbaatar', grade:'6+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Mao Tse Tung', grade:'7', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Benno Tse Tung', grade:'7-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Shaolin', grade:'6+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Seidenstraße', grade:'4+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Quigong', grade:'3', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Tschingis Khan', grade:'8', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Sibierischer Toger', grade:'8-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Transsib', grade:'4-,6', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Beijing', grade:'6', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Huang He', grade:'6', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Kunlun', grade:'6+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Lop Nor', grade:'5+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Dsungarei', grade:'4+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Sven Hedin', grade:'5+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Marco Polo', grade:'6b+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Kubila Khan', grade:'7', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Karakorum Highway', grade:'8-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Chöd', grade:'7+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Sakaya', grade:'8-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Lamrim', grade:'7+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Atillas Reich', grade:'8+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Gelug', grade:'8', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Kulturrevolution', grade:'8', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Dalai Lama', grade:'8', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Ginseng', grade:'7+,7,8-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Gelug (2)', grade:'4+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Drachenfest', grade:'5-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Pantschen Lama', grade:'4+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Exil', grade:'6-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Chinesische Mauer', grade:'7-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Kosakentanz', grade:'6+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+      {name:'Jakutien', grade:'6', type:'sport', dir:0, sector:'Die verbotene Stadt'}
+    ] }
+];
+
+// 山屋(Hütte),地图上用小房子图标标出,跟岩场的圆形天气标记区分开。目前只是个固定列表,没有做编辑功能。
+const DEFAULT_HUTS = [
+  { id:'gimpelhaus', name:'Gimpelhaus', lat:47.488268, lon:10.599882, elevation:1659 }
 ];
 
 let crags = load();
@@ -2586,6 +2658,19 @@ function initMap(){
   }).addTo(map);
 }
 
+function addHutMarkers(){
+  DEFAULT_HUTS.forEach(h=>{
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="hut-marker" title="${h.name}">🏠</div>`,
+      iconSize:[30,30], iconAnchor:[15,15]
+    });
+    const m = L.marker([h.lat, h.lon], {icon}).addTo(map);
+    m.bindTooltip(h.name, {direction:'top', offset:[0,-14]});
+    m.bindPopup(`<b>${h.name}</b>${h.elevation?`<br>${h.elevation} m`:''}`);
+  });
+}
+
 async function rebuildMarkers(){
   Object.values(markers).forEach(m=>map.removeLayer(m));
   markers = {};
@@ -2702,6 +2787,7 @@ document.getElementById('tcTry').onclick = async ()=>{
 renderFilterBar();
 initMap();
 rebuildMarkers();
+addHutMarkers();
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
