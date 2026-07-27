@@ -3104,6 +3104,51 @@ const DEFAULT_CRAGS = [
   { id:'frankenjura', name:'Frankenjura (中心代表点,区域内还有上千个独立岩场)', lat:49.7667, lon:11.2833,
     faces:[{dir:180,label:'南壁(区域内朝向差异很大)'}],
     routes:[] },
+  // 以下 7 个是 munichclimbs.de 上有、但地图上还没有的区域。先只标坐标和朝向,线路还没加(用户要求先不加)。
+  // 坐标取该区域里线路最多/最大的那个岩壁,朝向也是那个岩壁的真实朝向,不是估计。区域里其他分区名字列在注释里,以后要加线路时参考。
+  // Tölzer Land(munichclimbs.de/Toelzer_Land,共9个分区):Bad Heilbrunn(70条) / Meilenstein(17) / Kuhgarten(13) / Hohenburg(24) / Roß- und Buchstein(121,最大) / Daffensteine(58) / Feichteck(17) / Zirkuskessel(48) / Vorderer Kirchstein(26)
+  { id:'toelzer_land', name:'Tölzer Land (Roß- und Buchstein 等)', lat:47.6320, lon:11.6774,
+    faces:[{dir:180,label:'南壁(Roß- und Buchstein,区域内多数分区朝南/西)'}],
+    routes:[] },
+  // Reutte(munichclimbs.de/Reutte,共2个分区):Kraftwerkwand(86条,西向) / Weißewand(60条,南向)
+  { id:'reutte', name:'Reutte (Kraftwerkwand / Weißewand)', lat:47.5508, lon:10.6765,
+    faces:[
+      {dir:270,label:'西壁(Kraftwerkwand)'},
+      {dir:180,label:'南壁(Weißewand)'}
+    ],
+    routes:[] },
+  // Oberammergau(munichclimbs.de/Oberammergau,共8个分区):Frauenwasserl(47条,最大) / Falkenwand(41) / Kofel(24) / Friedhofswand(13,北向) / Bärenhöhle(13) / Kraxentrager(40,西南向) / Little Paradise(16) / Oberau(38)
+  { id:'oberammergau', name:'Oberammergau (Frauenwasserl 等)', lat:47.5821, lon:11.0678,
+    faces:[
+      {dir:180,label:'南壁(Frauenwasserl,区域内多数分区)'},
+      {dir:0,label:'北壁(Friedhofswand)'}
+    ],
+    routes:[] },
+  // Mangfallgebirge(munichclimbs.de/Mangfallgebirge,共4个分区):Taubenstein(35条,南向) / Ruchenköpfe(64,东/南/西) / Sebaldstein(28,北向) / Krettenburg(127条,最大,南向)
+  { id:'mangfallgebirge', name:'Mangfallgebirge (Krettenburg 等)', lat:47.6711, lon:11.8506,
+    faces:[
+      {dir:180,label:'南壁(Krettenburg,区域内多数分区)'},
+      {dir:0,label:'北壁(Sebaldstein)'}
+    ],
+    routes:[] },
+  // Chiemgau(munichclimbs.de/Chiemgau,共9个分区):Pleitewandl(98条) / Auerwandl(32) / Siffwandl(10) / Zellerwand(206条,最大) / Eglseeplatte(8,西向) / Bergen(73,北向) / Kaltwasserl(117) / Buchauerwand(25) / Kampenwand(27,知名山峰)
+  { id:'chiemgau', name:'Chiemgau (Zellerwand 等)', lat:47.7365, lon:12.4114,
+    faces:[
+      {dir:180,label:'南壁(Zellerwand,区域内多数分区)'},
+      {dir:0,label:'北壁(Bergen)'}
+    ],
+    routes:[] },
+  // Eichenau(munichclimbs.de/Eichenau,只有1个分区):Eichenau(65条,慕尼黑西边近郊,塔状岩壁四面都有路线)
+  { id:'eichenau', name:'Eichenau (bei München)', lat:48.1831, lon:11.3169,
+    faces:[{dir:180,label:'南壁(塔状岩壁,官网标N/O/S/W四面都有,这里按主要朝向处理)'}],
+    routes:[] },
+  // Garmisch(munichclimbs.de/Garmisch,共2个分区):Techno Wandl(20条,南向) / Katzenstein(27条,北向)
+  { id:'garmisch', name:'Garmisch (Techno Wandl / Katzenstein)', lat:47.4751, lon:11.0682,
+    faces:[
+      {dir:180,label:'南壁(Techno Wandl)'},
+      {dir:0,label:'北壁(Katzenstein)'}
+    ],
+    routes:[] },
   // Gimpelhaus 数据来源:climbers-paradise.com。两片攀岩区都在山屋附近/上方,没有单独更精确的坐标,
   // 这里坐标在山屋(1659m,见下面 DEFAULT_HUTS)基础上稍微往山上挪了一点,纯粹是为了地图上岩场圆点和小房子图标不重叠,不代表精确位置。
   // "Die verbotene Stadt"官网说朝向"北(阴,长线路)和南(短,晒得到)混合",没细分到每条线路,这里统一按北处理,只是显示用,不代表每条都朝北。
