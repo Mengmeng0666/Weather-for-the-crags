@@ -1,5 +1,5 @@
-const CACHE = 'alpenwand-v1';
-const ASSETS = ['./index.html', './manifest.json'];
+const CACHE = 'alpenwand-v2';
+const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-512-maskable.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
@@ -7,6 +7,9 @@ self.addEventListener('install', e=>{
 });
 
 self.addEventListener('activate', e=>{
+  e.waitUntil(
+    caches.keys().then(names=>Promise.all(names.filter(n=>n!==CACHE).map(n=>caches.delete(n))))
+  );
   self.clients.claim();
 });
 
