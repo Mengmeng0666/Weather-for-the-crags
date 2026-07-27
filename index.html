@@ -246,7 +246,7 @@ const DEFAULT_CRAGS = [
     faces:[
       {dir:180,label:'南壁(Sonnjoch 主岩壁,多段路线)'},
       {dir:270,label:'西壁(A. K. Karwendelwind)'},
-      {dir:135,label:'南东壁(Gramai Wasserfall 运动攀区)'}
+      {dir:135,label:'东南壁(Gramai Wasserfall 运动攀区)'}
     ],
     routes:[
       {name:'Rock it', grade:'6a+', type:'multi', pitches:3, dir:180},
@@ -2396,7 +2396,7 @@ function load(){
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(crags)); }
 
 function dirToCompass(deg){
-  const dirs = ['北','北东','东','南东','南','南西','西','北西'];
+  const dirs = ['北','东北','东','东南','南','西南','西','西北'];
   return dirs[Math.round(deg/45)%8];
 }
 
