@@ -2393,8 +2393,9 @@ const DEFAULT_CRAGS = [
   // 2条因为没名字/没难度跳过了(没编造)。Marco Polo 那条的"6b+"写法是原网站给的,和其他条目风格不一样,原样保留没有改。
   { id:'gimpelhaus', name:'Gimpelhaus (Tannheimer Tal)', lat:47.4908, lon:10.6018,
     faces:[
-      {dir:180,label:'南壁(Etscherwand 运动攀花园)'},
-      {dir:0,label:'北壁(Die verbotene Stadt,部分南向,官网未细分到每条线路)'}
+      {dir:180,label:'南壁(Etscherwand 运动攀花园 + 南向多段路线)'},
+      {dir:0,label:'北壁(Die verbotene Stadt + 北向大长线多段路线)'},
+      {dir:147,label:'东南壁(多段路线,含南偏东南向的几条)'}
     ],
     routes:[
       {name:'Maja', grade:'5b', type:'sport', dir:180, sector:'Etscherwand'},
@@ -2441,7 +2442,52 @@ const DEFAULT_CRAGS = [
       {name:'Exil', grade:'6-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
       {name:'Chinesische Mauer', grade:'7-', type:'sport', dir:0, sector:'Die verbotene Stadt'},
       {name:'Kosakentanz', grade:'6+', type:'sport', dir:0, sector:'Die verbotene Stadt'},
-      {name:'Jakutien', grade:'6', type:'sport', dir:0, sector:'Die verbotene Stadt'}
+      {name:'Jakutien', grade:'6', type:'sport', dir:0, sector:'Die verbotene Stadt'},
+
+      // 以下多段路线数据来源:climbers-paradise.com/kletterregionen/tannheimer-tal/mehrseillaengen/location/gimpel-1/
+      // 难度写法"X [Y]"是网站原文格式,X是整体难度、[Y]是关键难点难度(通常比整体低,是"最难那一步"的意思),原样保留。
+      // 3条因为朝向标了"N/A"(没给)跳过了,没有瞎猜朝向。Baseclimbs/Südwestrampe/Südwestkamin 网站没给段数,pitches留空会显示"?"。
+      {name:'Paartaler Pfeiler', grade:'7+ [6+]', type:'multi', pitches:4, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Im Weizenglas', grade:'6', type:'multi', pitches:4, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Zeit zum Klicken', grade:'5', type:'multi', pitches:2, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Fers-frakt-li', grade:'7', type:'multi', pitches:1, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Primavera (Baldoplatte)', grade:'8-', type:'multi', pitches:1, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Mit dem letzten Licht', grade:'8', type:'multi', pitches:1, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Paradies', grade:'6+', type:'multi', pitches:5, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Zeit zum Fädeln', grade:'5+', type:'multi', pitches:3, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Morgenstund', grade:'5+ [4+]', type:'multi', pitches:7, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Kuschelrock', grade:'8 [7-]', type:'multi', pitches:6, dir:135, sector:'Gimpel 多段路线(东南向)'},
+      {name:'Wirklich oben bist du nie', grade:'6+', type:'multi', pitches:6, dir:135, sector:'Gimpel 多段路线(东南向)'},
+
+      {name:'Till Ann', grade:'5- [4+]', type:'multi', pitches:8, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Zwerchweg', grade:'6+ [6]', type:'multi', pitches:7, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Siebenschläfer', grade:'7 [6+]', type:'multi', pitches:6, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Akrophobie', grade:'? [7-]', type:'multi', pitches:7, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Miss Nesselwängle', grade:'?', type:'multi', pitches:8, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Linie 2005', grade:'5+', type:'multi', pitches:5, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Tannheimer Revival', grade:'7-', type:'multi', pitches:5, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Diebische Rentner', grade:'6', type:'multi', pitches:7, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Memory', grade:'6+ [7-]', type:'multi', pitches:4, dir:180, sector:'Gimpel 多段路线(南向)'},
+      {name:'Seidenschwarz', grade:'6+ [5]', type:'multi', pitches:6, dir:180, sector:'Gimpel 多段路线(南向)'},
+
+      {name:'Feuerland', grade:'9- [7+]', type:'multi', pitches:13, dir:0, sector:'Gimpel 多段路线(北向大长线)'},
+      {name:'Schertelplatte', grade:'6+ [6]', type:'multi', pitches:12, dir:0, sector:'Gimpel 多段路线(北向大长线)'},
+      {name:'Schrei aus Stein', grade:'9- [9]', type:'multi', pitches:20, dir:0, sector:'Gimpel 多段路线(北向大长线)'},
+      {name:'Gimpelperle', grade:'8- [7-]', type:'multi', pitches:12, dir:0, sector:'Gimpel 多段路线(北向大长线)'},
+      {name:'Schräger Riss', grade:'6', type:'multi', pitches:13, dir:0, sector:'Gimpel 多段路线(北向大长线)'},
+
+      {name:'Westgrat', grade:'6 [4-]', type:'multi', pitches:6, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Baseclimbs', grade:'6 [6+]', type:'multi', dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Südwestrampe', grade:'5', type:'multi', pitches:2, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Südwestkamin', grade:'4+', type:'multi', pitches:6, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Neue Südwand', grade:'7- [5+]', type:'multi', pitches:8, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Alte Südwand', grade:'4+', type:'multi', pitches:10, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Genießervariante', grade:'5-', type:'multi', pitches:2, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Südostwand', grade:'3+', type:'multi', pitches:8, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Neue Südostkante', grade:'6', type:'multi', pitches:8, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Südostkamin', grade:'4+', type:'multi', pitches:8, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Linie 85', grade:'7- [6]', type:'multi', pitches:5, dir:158, sector:'Gimpel 多段路线(南偏东南向)'},
+      {name:'Weihnachtsweg', grade:'6+', type:'multi', pitches:3, dir:158, sector:'Gimpel 多段路线(南偏东南向)'}
     ] }
 ];
 
