@@ -60,6 +60,7 @@
     cursor:pointer;white-space:nowrap;
   }
   .chip.active{background:var(--sun);border-color:var(--sun);color:#1c2321;font-weight:600;}
+  .chip-sep{width:1px;background:var(--line);flex:none;align-self:stretch;margin:2px 4px;}
   .legend{
     display:flex;gap:12px;padding:0 20px 12px;font-size:10.5px;color:var(--ink-dim);
     font-family:'IBM Plex Mono',monospace;flex:none;align-items:center;flex-wrap:wrap;
@@ -121,6 +122,7 @@
   }
   .day-row.best{border-color:var(--sun);}
   .day-row.best .d{color:var(--sun-soft);font-weight:600;}
+  .day-row.sel{background:rgba(91,140,158,.16);}
   .day-row .d{font-family:'IBM Plex Mono',monospace;color:var(--ink-dim);}
   .day-row .bar-wrap{height:8px;border-radius:5px;background:#1c2321;overflow:hidden;}
   .day-row .bar{height:100%;border-radius:5px;}
@@ -239,7 +241,9 @@ const LANG_KEY = 'alpenwand_lang';
 const I18N = {
   zh: {
     subtitle: '慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路',
-    legendGood: '今日指数≥70 · 适合去',
+    legendGood: '指数≥70 · 适合去',
+    dayToday: '今天', scoreWord: '指数',
+    bestOrientationDay: (wd)=>`${wd}最佳朝向`,
     legendMid: '40–69 · 看情况',
     legendBad: '<40 · 大概率湿/多云',
     filterAll: '全部', filterSport: '运动攀', filterMulti: '多段线路', filterRain: '☔ 雨天可爬',
@@ -247,7 +251,7 @@ const I18N = {
     bestOrientation: '今日最佳朝向', directSun: 'h 直射',
     reasonHot: ' · 高温,推荐找阴面', reasonCold: ' · 低温,推荐晒太阳保暖',
     todayIndex: '今日指数',
-    dialCap: '壁面朝向 · 今日日照', dialCapFilterHint: ' · 点朝向筛选线路',
+    dialCap: '壁面朝向 · 日照', dialCapFilterHint: ' · 点朝向筛选线路',
     weatherFailed: '天气数据加载失败,稍后重试',
     sportRoutes: '运动攀线路', multiRoutes: '多段线路',
     tagSport: '运动攀', tagMulti: '多段 ×',
@@ -268,7 +272,9 @@ const I18N = {
   },
   en: {
     subtitle: 'Munich · Alpine crag map · Sun / weather / routes',
-    legendGood: 'Today’s score ≥70 · good to go',
+    legendGood: 'Score ≥70 · good to go',
+    dayToday: 'Today', scoreWord: 'score',
+    bestOrientationDay: (wd)=>`Best face ${wd}`,
     legendMid: '40–69 · check conditions',
     legendBad: '<40 · likely wet/cloudy',
     filterAll: 'All', filterSport: 'Sport', filterMulti: 'Multi-pitch', filterRain: '☔ Rain-safe',
@@ -276,7 +282,7 @@ const I18N = {
     bestOrientation: 'Best face today', directSun: 'h direct sun',
     reasonHot: ' · hot, favoring shade', reasonCold: ' · cold, favoring sun for warmth',
     todayIndex: 'Today’s score',
-    dialCap: 'Wall orientation · sun today', dialCapFilterHint: ' · tap a face to filter routes',
+    dialCap: 'Wall orientation · sun', dialCapFilterHint: ' · tap a face to filter routes',
     weatherFailed: 'Weather failed to load, try again later',
     sportRoutes: 'Sport routes', multiRoutes: 'Multi-pitch routes',
     tagSport: 'sport', tagMulti: 'multi ×',
@@ -297,7 +303,9 @@ const I18N = {
   },
   de: {
     subtitle: 'München · Alpine Kletterfelsen-Karte · Sonne / Wetter / Routen',
-    legendGood: 'Tageswert ≥70 · gut geeignet',
+    legendGood: 'Wert ≥70 · gut geeignet',
+    dayToday: 'Heute', scoreWord: 'Wert',
+    bestOrientationDay: (wd)=>`Beste Wand am ${wd}`,
     legendMid: '40–69 · je nach Lust',
     legendBad: '<40 · wahrscheinlich nass/bewölkt',
     filterAll: 'Alle', filterSport: 'Sportklettern', filterMulti: 'Mehrseillängen', filterRain: '☔ Regensicher',
@@ -305,7 +313,7 @@ const I18N = {
     bestOrientation: 'Beste Wand heute', directSun: 'h direkte Sonne',
     reasonHot: ' · heiß, Schatten empfohlen', reasonCold: ' · kalt, Sonne zum Aufwärmen empfohlen',
     todayIndex: 'Tageswert',
-    dialCap: 'Wandausrichtung · Sonne heute', dialCapFilterHint: ' · Wand antippen zum Filtern',
+    dialCap: 'Wandausrichtung · Sonne', dialCapFilterHint: ' · Wand antippen zum Filtern',
     weatherFailed: 'Wetterdaten konnten nicht geladen werden, später erneut versuchen',
     sportRoutes: 'Sportklettern-Routen', multiRoutes: 'Mehrseillängen-Routen',
     tagSport: 'Sport', tagMulti: 'Mehrseil ×',
@@ -3811,6 +3819,16 @@ function cragHasRainOption(c){
 let map, markers = {};
 let currentSheetCragId = null;
 let sheetFaceFilter = null; // 点罗盘上某个朝向,只看这个朝向的线路;再点一次或点"清除筛选"恢复全部
+let selectedDay = 0; // 0=今天,1-3=之后三天。地图圆点/聚合分数、详情页头部都跟着这个切换(预报数据本来就有4天,只是以前只显示第一天)
+
+// 从天气数据里取第 i 天的分数;数据缺失时返回 null(圆点显示灰色"—"),不假装是好天
+function dayScoreFromWx(wx, i){
+  if(!wx || !wx.daily) return null;
+  const p = wx.daily.precipitation_probability_max?.[i];
+  const cl = wx.daily.cloud_cover_mean?.[i];
+  if(p==null && cl==null) return null;
+  return scoreFor({precip:p, cloud:cl});
+}
 
 function load(){
   let stored = null;
@@ -3902,9 +3920,8 @@ function scoreFor(day){
 }
 
 function markerColor(c, wx){
-  if(!wx || !wx.daily) return 'var(--ink-dim)';
-  const day = {precip:wx.daily.precipitation_probability_max[0], cloud:wx.daily.cloud_cover_mean[0]};
-  return scoreFor(day).color;
+  const s = dayScoreFromWx(wx, selectedDay);
+  return s ? s.color : 'var(--ink-dim)';
 }
 
 // "今日最佳朝向"不能只看晒太阳时长——夏天暴晒的南墙反而难受(石头烫手、体感差),冬天才是晒得越久越好。
@@ -3932,11 +3949,16 @@ async function buildSheetHTML(c){
         precip:dd.precipitation_probability_max[i], cloud:dd.cloud_cover_mean[i]});
     }
   }
-  const todaySunHours = c.faces.map(f=>({face:f, h: sunHoursForFace(new Date(), c.lat, c.lon, f.dir)}));
-  const bestFace = pickBestFace(todaySunHours, days[0]?.tmax);
-  const sc = scoreFor(days[0]);
+  // 整个头部(大分数、最佳朝向、罗盘日照)都按工具栏选中的日期算,不再固定是今天
+  const selDate = new Date(Date.now() + selectedDay*86400000);
+  const todaySunHours = c.faces.map(f=>({face:f, h: sunHoursForFace(selDate, c.lat, c.lon, f.dir)}));
+  const bestFace = pickBestFace(todaySunHours, days[selectedDay]?.tmax);
+  const sc = scoreFor(days[selectedDay]);
+  const wdSel = selDate.toLocaleDateString(t('locale'),{weekday:'short'});
+  const scoreLbl = selectedDay===0 ? t('todayIndex') : `${wdSel} · ${t('scoreWord')}`;
+  const bestLbl = selectedDay===0 ? t('bestOrientation') : t('bestOrientationDay')(wdSel);
 
-  // 预报里分数最高的那天高亮显示(★),分数并列时取最早的一天
+  // 预报里分数最高的那天高亮显示(★),分数并列时取最早的一天;当前选中的日期加背景色
   const dayScores = days.map(d=>scoreFor(d).val);
   const bestDayIdx = dayScores.length ? dayScores.indexOf(Math.max(...dayScores.filter(v=>v!=null))) : -1;
   const dayRows = days.map((d,i)=>{
@@ -3944,7 +3966,8 @@ async function buildSheetHTML(c){
     const wd = new Date(d.date).toLocaleDateString(t('locale'),{weekday:'short'});
     const sunH = c.faces.length ? Math.max(...c.faces.map(f=>sunHoursForFace(new Date(d.date), c.lat, c.lon, f.dir))) : 0;
     const isBest = i===bestDayIdx;
-    return `<div class="day-row${isBest?' best':''}">
+    const isSel = i===selectedDay;
+    return `<div class="day-row${isBest?' best':''}${isSel?' sel':''}">
       <div class="d">${wd}${isBest?'★':''}</div>
       <div class="bar-wrap"><div class="bar" style="width:${s.val}%;background:${s.color}"></div></div>
       <div class="stats">
@@ -4014,18 +4037,18 @@ async function buildSheetHTML(c){
     <div class="crag-head">
       <div>
         <h2>${c.name}</h2>
-        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · ${t('bestOrientation')} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[0]?.tmax)})</div>
+        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · ${bestLbl} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})</div>
         ${rainBadge}
       </div>
       <div class="score">
         <div class="val" style="color:${sc.color}">${sc.val ?? '—'}</div>
-        <div class="lbl">${t('todayIndex')}</div>
+        <div class="lbl">${scoreLbl}</div>
       </div>
     </div>
     <div class="contour"></div>
     <div class="body-grid">
       <div class="dial-wrap">
-        ${drawDial(c.faces, new Date(), c.lat, c.lon, sheetFaceFilter)}
+        ${drawDial(c.faces, selDate, c.lat, c.lon, sheetFaceFilter)}
         <div class="dial-cap">${t('dialCap')}${c.faces.length>1?t('dialCapFilterHint'):''}</div>
       </div>
       <div class="days">${dayRows || `<div class="hint">${t('weatherFailed')}</div>`}</div>
@@ -4121,7 +4144,8 @@ async function rebuildMarkers(){
   filtered.forEach((c,i)=>{
     const wx = wxList[i];
     const color = markerColor(c, wx);
-    const score = (wx && wx.daily) ? scoreFor({precip:wx.daily.precipitation_probability_max[0], cloud:wx.daily.cloud_cover_mean[0]}).val : '—';
+    const dayScore = dayScoreFromWx(wx, selectedDay);
+    const score = dayScore ? dayScore.val : '—';
     const icon = L.divIcon({
       className:'',
       html:`<div class="crag-marker" style="background:${color}">${score}</div>`,
@@ -4139,12 +4163,28 @@ async function rebuildMarkers(){
 function renderFilterBar(){
   const bar = document.getElementById('filterBar');
   const opts = [['all',t('filterAll')],['sport',t('filterSport')],['multi',t('filterMulti')]];
+  // 日期切换:今天 + 之后三天(和 open-meteo 拉的 forecast_days=4 对应),按当地语言显示星期几
+  const dayChips = [0,1,2,3].map(i=>{
+    const d = new Date(Date.now() + i*86400000);
+    const label = i===0 ? t('dayToday') : d.toLocaleDateString(t('locale'),{weekday:'short'});
+    return `<div class="chip ${selectedDay===i?'active':''}" data-day="${i}">${label}</div>`;
+  }).join('');
   bar.innerHTML = opts.map(([k,l])=>`<div class="chip ${filter.type===k?'active':''}" data-f="${k}">${l}</div>`).join('')
-    + `<div class="chip ${filter.rain?'active':''}" id="rainChip">${t('filterRain')}</div>`;
+    + `<div class="chip ${filter.rain?'active':''}" id="rainChip">${t('filterRain')}</div>`
+    + `<span class="chip-sep"></span>`
+    + dayChips;
   bar.querySelectorAll('[data-f]').forEach(el=>{
     el.onclick = ()=>{ filter.type = el.dataset.f; renderFilterBar(); rebuildMarkers(); };
   });
   document.getElementById('rainChip').onclick = ()=>{ filter.rain = !filter.rain; renderFilterBar(); rebuildMarkers(); };
+  bar.querySelectorAll('[data-day]').forEach(el=>{
+    el.onclick = ()=>{
+      selectedDay = parseInt(el.dataset.day);
+      renderFilterBar();
+      rebuildMarkers();
+      if(currentSheetCragId && document.getElementById('sheet').classList.contains('open')) renderSheetContent();
+    };
+  });
 }
 
 // --- search ---
