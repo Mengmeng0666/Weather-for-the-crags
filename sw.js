@@ -1,4 +1,4 @@
-const CACHE = 'alpenwand-v2';
+const CACHE = 'alpenwand-v3';
 const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-512-maskable.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e=>{
@@ -16,6 +16,17 @@ self.addEventListener('activate', e=>{
 self.addEventListener('fetch', e=>{
   // 天气/太阳数据不缓存,始终走网络;静态资源走缓存优先
   if(e.request.url.includes('open-meteo.com') || e.request.url.includes('thecrag.com')){
+    return;
+  }
+  // 页面本身(index.html)网络优先:之前是缓存优先,已安装的用户会一直看到旧版本,只有断网时才退回缓存
+  if(e.request.mode==='navigate' || e.request.url.endsWith('index.html')){
+    e.respondWith(
+      fetch(e.request).then(res=>{
+        const copy = res.clone();
+        caches.open(CACHE).then(c=>c.put(e.request, copy));
+        return res;
+      }).catch(()=>caches.match(e.request))
+    );
     return;
   }
   e.respondWith(

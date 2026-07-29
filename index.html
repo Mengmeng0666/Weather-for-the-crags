@@ -16,7 +16,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
 <style>
   :root{
@@ -125,7 +127,10 @@
   .day-row{
     display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:8px;
     font-size:12.5px;padding:8px 9px;border-radius:8px;background:var(--panel-2);
+    border:1px solid transparent;
   }
+  .day-row.best{border-color:var(--sun);}
+  .day-row.best .d{color:var(--sun-soft);font-weight:600;}
   .day-row .d{font-family:'IBM Plex Mono',monospace;color:var(--ink-dim);}
   .day-row .bar-wrap{height:8px;border-radius:5px;background:#1c2321;overflow:hidden;}
   .day-row .bar{height:100%;border-radius:5px;}
@@ -166,6 +171,36 @@
     color:var(--ink-dim);font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;
   }
   .lang-switch button.active{background:var(--sun);border-color:var(--sun);color:#1c2321;font-weight:600;}
+  .search-wrap{position:relative;margin-top:10px;}
+  #cragSearch{
+    width:100%;max-width:340px;padding:8px 12px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    font-size:13px;font-family:'Inter',sans-serif;
+  }
+  #cragSearch::placeholder{color:var(--ink-dim);}
+  .search-results{
+    position:absolute;top:calc(100% + 4px);left:0;width:100%;max-width:340px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    z-index:1500;display:none;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);
+  }
+  .search-item{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line);}
+  .search-item:last-child{border-bottom:none;}
+  .search-item:hover{background:var(--panel-2);}
+  .search-item .sec{color:var(--ink-dim);font-size:11px;margin-left:6px;}
+  .search-empty{padding:9px 12px;font-size:12px;color:var(--ink-dim);}
+  .cluster-marker{
+    display:flex;align-items:center;justify-content:center;
+    width:40px;height:40px;border-radius:50%;
+    background:var(--panel-2);border:2.5px solid var(--sun);
+    color:var(--sun-soft);font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;
+    box-shadow:0 3px 10px rgba(0,0,0,.5);
+  }
+  .grade-hist{margin:0 0 12px;}
+  .gh-title{font-size:10.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-bottom:4px;}
+  .gh-bars{display:flex;align-items:flex-end;gap:3px;}
+  .gh-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;max-width:34px;}
+  .gh-bar{width:100%;background:var(--sport);border-radius:3px 3px 0 0;min-height:2px;}
+  .gh-lbl{font-size:9px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;}
 </style>
 </head>
 <body>
@@ -176,6 +211,10 @@
     <div class="lang-switch" id="langSwitch"></div>
   </div>
   <div class="sub" id="subTitle">慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路</div>
+  <div class="search-wrap">
+    <input id="cragSearch" type="search" autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
 </header>
 
 <div class="toolbar" id="filterBar"></div>
@@ -223,6 +262,9 @@ const I18N = {
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
     feedbackLink: '发现信息有误 / 想补充?去 GitHub 反馈 →',
     feedbackTitlePrefix: '岩场信息反馈:',
+    searchPlaceholder: '搜索岩场 / 分区…',
+    searchNoResults: '没有匹配的岩场',
+    histTitle: '难度分布(按数字前缀粗略统计)',
     loading: (name)=>`加载 ${name} 中…`,
     metaFacing: '向',
     dirs: ['北','东北','东','东南','南','西南','西','北西'],
@@ -249,6 +291,9 @@ const I18N = {
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
     feedbackLink: 'Spot an error / have something to add? Open a GitHub issue →',
     feedbackTitlePrefix: 'Crag feedback: ',
+    searchPlaceholder: 'Search crags / sectors…',
+    searchNoResults: 'No matching crags',
+    histTitle: 'Grade distribution (rough, by leading number)',
     loading: (name)=>`Loading ${name}…`,
     metaFacing: '-facing',
     dirs: ['N','NE','E','SE','S','SW','W','NW'],
@@ -275,6 +320,9 @@ const I18N = {
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? GitHub-Issue erstellen →',
     feedbackTitlePrefix: 'Feedback zum Fels: ',
+    searchPlaceholder: 'Fels / Sektor suchen…',
+    searchNoResults: 'Keine Treffer',
+    histTitle: 'Schwierigkeitsverteilung (grob, nach führender Zahl)',
     loading: (name)=>`${name} wird geladen…`,
     metaFacing: '-seitig',
     dirs: ['Nord','Nordost','Ost','Südost','Süd','Südwest','West','Nordwest'],
@@ -321,6 +369,7 @@ function applyStaticI18n(){
     el.append(document.createTextNode(t(key)));
   });
   document.querySelector('.fab').title = t('fabTitle');
+  document.getElementById('cragSearch').placeholder = t('searchPlaceholder');
   document.getElementById('langSwitch').innerHTML = ['zh','en','de'].map(l=>
     `<button data-lang="${l}" class="${LANG===l?'active':''}">${l.toUpperCase()}</button>`
   ).join('');
@@ -3896,12 +3945,16 @@ async function buildSheetHTML(c){
   const bestFace = pickBestFace(todaySunHours, days[0]?.tmax);
   const sc = scoreFor(days[0]);
 
-  const dayRows = days.map(d=>{
+  // 预报里分数最高的那天高亮显示(★),分数并列时取最早的一天
+  const dayScores = days.map(d=>scoreFor(d).val);
+  const bestDayIdx = dayScores.length ? dayScores.indexOf(Math.max(...dayScores.filter(v=>v!=null))) : -1;
+  const dayRows = days.map((d,i)=>{
     const s = scoreFor(d);
     const wd = new Date(d.date).toLocaleDateString(t('locale'),{weekday:'short'});
     const sunH = c.faces.length ? Math.max(...c.faces.map(f=>sunHoursForFace(new Date(d.date), c.lat, c.lon, f.dir))) : 0;
-    return `<div class="day-row">
-      <div class="d">${wd}</div>
+    const isBest = i===bestDayIdx;
+    return `<div class="day-row${isBest?' best':''}">
+      <div class="d">${wd}${isBest?'★':''}</div>
       <div class="bar-wrap"><div class="bar" style="width:${s.val}%;background:${s.color}"></div></div>
       <div class="stats">
         <div class="t">${Math.round(d.tmin)}° / ${Math.round(d.tmax)}°</div>
@@ -3934,6 +3987,23 @@ async function buildSheetHTML(c){
     });
     return order.map(key=>`<details class="sector-group"><summary>${localizeSector(key)} (${groups[key].length})</summary>${routeList(groups[key])}</details>`).join('');
   }
+  // 难度分布小直方图:按难度的数字前缀分桶(UIAA "7+"→7,法国制 "6a"→6)。
+  // 两种难度体系数字含义不同,这只是个粗略的"这个岩场偏简单还是偏难"参考,标题里注明了;罗马数字("V+")和无难度的跳过。
+  function gradeHistogram(list){
+    const buckets = {};
+    list.forEach(r=>{ const n = parseInt(r.grade); if(!isNaN(n) && n>=1 && n<=12) buckets[n]=(buckets[n]||0)+1; });
+    const keys = Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+    if(keys.length<2) return '';
+    const max = Math.max(...Object.values(buckets));
+    let bars='';
+    for(let k=keys[0]; k<=keys[keys.length-1]; k++){
+      const v = buckets[k]||0;
+      const h = v ? Math.max(4, Math.round(v/max*34)) : 2;
+      bars += `<div class="gh-col"><div class="gh-bar" style="height:${h}px" title="${k}: ${v}"></div><div class="gh-lbl">${k}</div></div>`;
+    }
+    return `<div class="grade-hist"><div class="gh-title">${t('histTitle')}</div><div class="gh-bars">${bars}</div></div>`;
+  }
+  const gradeHist = gradeHistogram(activeRoutes);
   const noRoutes = activeRoutes.length===0
     ? (sheetFaceFilter!=null
         ? `<div class="hint">${t('noRoutesThisFace')}</div>`
@@ -3971,6 +4041,7 @@ async function buildSheetHTML(c){
     </div>
     <div class="routes">
       ${filterChip}
+      ${gradeHist}
       ${routesByType.sport.length?`<details open><summary>${t('sportRoutes')} (${routesByType.sport.length})</summary>${routeListMaybeGrouped(routesByType.sport)}</details>`:''}
       ${routesByType.multi.length?`<details open><summary>${t('multiRoutes')} (${routesByType.multi.length})</summary>${routeListMaybeGrouped(routesByType.multi)}</details>`:''}
       ${noRoutes}
@@ -4036,7 +4107,12 @@ function addHutMarkers(){
   });
 }
 
+let clusterGroup = null;
 async function rebuildMarkers(){
+  // 上一版是逐个 await 天气(27个岩场要排队十几秒),改成并发一起请求;
+  // 缩小地图时相邻岩场的圆点会挤在一起,用 markercluster 聚合成一个数字圆点,点击自动放大散开。
+  // markercluster 是 CDN 加载的,万一加载失败就退回原来的"直接铺在地图上"。
+  if(clusterGroup){ map.removeLayer(clusterGroup); clusterGroup = null; }
   Object.values(markers).forEach(m=>map.removeLayer(m));
   markers = {};
   const filtered = crags.filter(c=>{
@@ -4044,8 +4120,21 @@ async function rebuildMarkers(){
     if(filter.rain && !cragHasRainOption(c)) return false;
     return true;
   });
-  for(const c of filtered){
-    const wx = await fetchWeather(c.lat, c.lon);
+  const supportsCluster = typeof L.markerClusterGroup === 'function';
+  if(supportsCluster){
+    clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 42,
+      showCoverageOnHover: false,
+      iconCreateFunction: cluster => L.divIcon({
+        className:'',
+        html:`<div class="cluster-marker">${cluster.getChildCount()}</div>`,
+        iconSize:[40,40], iconAnchor:[20,20]
+      })
+    });
+  }
+  const wxList = await Promise.all(filtered.map(c=>fetchWeather(c.lat, c.lon)));
+  filtered.forEach((c,i)=>{
+    const wx = wxList[i];
     const color = markerColor(c, wx);
     const score = (wx && wx.daily) ? scoreFor({precip:wx.daily.precipitation_probability_max[0], cloud:wx.daily.cloud_cover_mean[0]}).val : '—';
     const icon = L.divIcon({
@@ -4053,11 +4142,13 @@ async function rebuildMarkers(){
       html:`<div class="crag-marker" style="background:${color}">${score}</div>`,
       iconSize:[38,38], iconAnchor:[19,19]
     });
-    const m = L.marker([c.lat, c.lon], {icon}).addTo(map);
+    const m = L.marker([c.lat, c.lon], {icon});
     m.bindTooltip(c.name, {direction:'top', offset:[0,-16]});
     m.on('click', ()=>openSheet(c.id));
+    if(clusterGroup){ clusterGroup.addLayer(m); } else { m.addTo(map); }
     markers[c.id] = m;
-  }
+  });
+  if(clusterGroup) map.addLayer(clusterGroup);
 }
 
 function renderFilterBar(){
@@ -4071,8 +4162,40 @@ function renderFilterBar(){
   document.getElementById('rainChip').onclick = ()=>{ filter.rain = !filter.rain; renderFilterBar(); rebuildMarkers(); };
 }
 
+// --- search ---
+// 按岩场名或分区名搜索;匹配到分区时结果里带上分区名提示(比如搜"Zoo"能找到 Kallmünz)
+function initSearch(){
+  const input = document.getElementById('cragSearch');
+  const box = document.getElementById('searchResults');
+  input.oninput = ()=>{
+    const q = input.value.trim().toLowerCase();
+    if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+    const hits = [];
+    crags.forEach(c=>{
+      if(c.name.toLowerCase().includes(q)){ hits.push({c, sec:null}); return; }
+      const sec = [...new Set(c.routes.map(r=>r.sector).filter(Boolean))].find(s=>s.toLowerCase().includes(q));
+      if(sec) hits.push({c, sec});
+    });
+    box.innerHTML = hits.length
+      ? hits.slice(0,8).map(h=>`<div class="search-item" data-id="${h.c.id}">${h.c.name}${h.sec?`<span class="sec">→ ${localizeSector(h.sec)}</span>`:''}</div>`).join('')
+      : `<div class="search-empty">${t('searchNoResults')}</div>`;
+    box.style.display = 'block';
+    box.querySelectorAll('.search-item').forEach(el=>{
+      el.onclick = ()=>{
+        const c = crags.find(x=>x.id===el.dataset.id);
+        box.style.display='none'; input.value='';
+        map.setView([c.lat, c.lon], 12);
+        openSheet(c.id);
+      };
+    });
+  };
+  // blur 延迟收起,不然点结果时下拉先消失、点击落空
+  input.onblur = ()=> setTimeout(()=>{ box.style.display='none'; }, 200);
+}
+
 applyStaticI18n();
 renderFilterBar();
+initSearch();
 initMap();
 rebuildMarkers();
 addHutMarkers();
