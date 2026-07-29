@@ -159,17 +159,27 @@
   .empty{text-align:center;color:var(--ink-dim);padding:22px 20px;font-size:13px;}
   .hint{font-size:11px;color:var(--ink-dim);line-height:1.5;margin-top:8px;}
   a{color:var(--glacier);}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .lang-switch{display:flex;gap:4px;flex:none;}
+  .lang-switch button{
+    padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel);
+    color:var(--ink-dim);font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;
+  }
+  .lang-switch button.active{background:var(--sun);border-color:var(--sun);color:#1c2321;font-weight:600;}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Alpenwand</h1>
-  <div class="sub">慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路</div>
+  <div class="header-top">
+    <h1>Alpenwand</h1>
+    <div class="lang-switch" id="langSwitch"></div>
+  </div>
+  <div class="sub" id="subTitle">慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路</div>
 </header>
 
 <div class="toolbar" id="filterBar"></div>
-<div class="legend">
+<div class="legend" id="legendBar">
   <span><span class="dot" style="background:var(--good)"></span>今日指数≥70 · 适合去</span>
   <span><span class="dot" style="background:var(--mid)"></span>40–69 · 看情况</span>
   <span><span class="dot" style="background:var(--bad)"></span>&lt;40 · 大概率湿/多云</span>
@@ -187,6 +197,138 @@
 
 <script>
 const STORAGE_KEY = 'alpenwand_crags_v2';
+const LANG_KEY = 'alpenwand_lang';
+
+// --- i18n ---
+// 界面文字的三语字典。岩场名字、线路名字、分区名字(比如 Dohlenfels Links 这种)本来就是德语专有名词,不翻译。
+const I18N = {
+  zh: {
+    subtitle: '慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路',
+    legendGood: '今日指数≥70 · 适合去',
+    legendMid: '40–69 · 看情况',
+    legendBad: '<40 · 大概率湿/多云',
+    filterAll: '全部', filterSport: '运动攀', filterMulti: '多段线路', filterRain: '☔ 雨天可爬',
+    fabTitle: '反馈 / 建议新增岩场',
+    bestOrientation: '今日最佳朝向', directSun: 'h 直射',
+    reasonHot: ' · 高温,推荐找阴面', reasonCold: ' · 低温,推荐晒太阳保暖',
+    todayIndex: '今日指数',
+    dialCap: '壁面朝向 · 今日日照', dialCapFilterHint: ' · 点朝向筛选线路',
+    weatherFailed: '天气数据加载失败,稍后重试',
+    sportRoutes: '运动攀线路', multiRoutes: '多段线路',
+    tagSport: '运动攀', tagMulti: '多段 ×',
+    tagRainYes: '☔防雨', tagRainPartial: '☔部分防雨',
+    rainBadgeYes: '☔ 官网标注防雨', rainBadgePartial: '☔ 官网标注部分防雨', rainBadgeNo: '☔ 官网标注不防雨',
+    rainBadgeSome: (n)=>`☔ 有 ${n} 条线路标了防雨/部分防雨(见下面线路列表)`,
+    onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
+    noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
+    feedbackLink: '发现信息有误 / 想补充?去 GitHub 反馈 →',
+    feedbackTitlePrefix: '岩场信息反馈:',
+    loading: (name)=>`加载 ${name} 中…`,
+    metaFacing: '向',
+    dirs: ['北','东北','东','东南','南','西南','西','北西'],
+    locale: 'zh-CN'
+  },
+  en: {
+    subtitle: 'Munich · Alpine crag map · Sun / weather / routes',
+    legendGood: 'Today’s score ≥70 · good to go',
+    legendMid: '40–69 · check conditions',
+    legendBad: '<40 · likely wet/cloudy',
+    filterAll: 'All', filterSport: 'Sport', filterMulti: 'Multi-pitch', filterRain: '☔ Rain-safe',
+    fabTitle: 'Feedback / suggest a crag',
+    bestOrientation: 'Best face today', directSun: 'h direct sun',
+    reasonHot: ' · hot, favoring shade', reasonCold: ' · cold, favoring sun for warmth',
+    todayIndex: 'Today’s score',
+    dialCap: 'Wall orientation · sun today', dialCapFilterHint: ' · tap a face to filter routes',
+    weatherFailed: 'Weather failed to load, try again later',
+    sportRoutes: 'Sport routes', multiRoutes: 'Multi-pitch routes',
+    tagSport: 'sport', tagMulti: 'multi ×',
+    tagRainYes: '☔rain-safe', tagRainPartial: '☔partial shelter',
+    rainBadgeYes: '☔ Source says rain-protected', rainBadgePartial: '☔ Source says partially rain-protected', rainBadgeNo: '☔ Source says not rain-safe',
+    rainBadgeSome: (n)=>`☔ ${n} route(s) marked rain-safe/partial (see route list below)`,
+    onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
+    noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
+    feedbackLink: 'Spot an error / have something to add? Open a GitHub issue →',
+    feedbackTitlePrefix: 'Crag feedback: ',
+    loading: (name)=>`Loading ${name}…`,
+    metaFacing: '-facing',
+    dirs: ['N','NE','E','SE','S','SW','W','NW'],
+    locale: 'en-US'
+  },
+  de: {
+    subtitle: 'München · Alpine Kletterfelsen-Karte · Sonne / Wetter / Routen',
+    legendGood: 'Tageswert ≥70 · gut geeignet',
+    legendMid: '40–69 · je nach Lust',
+    legendBad: '<40 · wahrscheinlich nass/bewölkt',
+    filterAll: 'Alle', filterSport: 'Sportklettern', filterMulti: 'Mehrseillängen', filterRain: '☔ Regensicher',
+    fabTitle: 'Feedback / Fels vorschlagen',
+    bestOrientation: 'Beste Wand heute', directSun: 'h direkte Sonne',
+    reasonHot: ' · heiß, Schatten empfohlen', reasonCold: ' · kalt, Sonne zum Aufwärmen empfohlen',
+    todayIndex: 'Tageswert',
+    dialCap: 'Wandausrichtung · Sonne heute', dialCapFilterHint: ' · Wand antippen zum Filtern',
+    weatherFailed: 'Wetterdaten konnten nicht geladen werden, später erneut versuchen',
+    sportRoutes: 'Sportklettern-Routen', multiRoutes: 'Mehrseillängen-Routen',
+    tagSport: 'Sport', tagMulti: 'Mehrseil ×',
+    tagRainYes: '☔regensicher', tagRainPartial: '☔teilw. regensicher',
+    rainBadgeYes: '☔ Laut Quelle regengeschützt', rainBadgePartial: '☔ Laut Quelle teilweise regengeschützt', rainBadgeNo: '☔ Laut Quelle nicht regensicher',
+    rainBadgeSome: (n)=>`☔ ${n} Route(n) als regensicher/teilweise markiert (siehe Routenliste unten)`,
+    onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
+    noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
+    feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? GitHub-Issue erstellen →',
+    feedbackTitlePrefix: 'Feedback zum Fels: ',
+    loading: (name)=>`${name} wird geladen…`,
+    metaFacing: '-seitig',
+    dirs: ['Nord','Nordost','Ost','Südost','Süd','Südwest','West','Nordwest'],
+    locale: 'de-DE'
+  }
+};
+// 少数几个岩场分区名字里带的中文备注(比如护鸟关闭日期),翻译成对应语言时顺手替换掉
+const SECTOR_NOTE_MAP = {
+  '每年1/1–7/31关闭': {en:'closed annually Jan 1–Jul 31', de:'jährlich geschlossen 1.1.–31.7.'},
+  '每年10/1–3/31关闭': {en:'closed annually Oct 1–Mar 31', de:'jährlich geschlossen 1.10.–31.3.'},
+  '每年1/15–7/31关闭': {en:'closed annually Jan 15–Jul 31', de:'jährlich geschlossen 15.1.–31.7.'},
+  '每年2/1–7/31关闭': {en:'closed annually Feb 1–Jul 31', de:'jährlich geschlossen 1.2.–31.7.'},
+  '6月1日前关闭,是否每年固定未知': {en:'closed until Jun 1 (unclear if this recurs yearly)', de:'bis 1. Juni geschlossen (unklar ob jährlich)'},
+  '多段路线(东南向)': {en:'multi-pitch routes (SE-facing)', de:'Mehrseillängen (Südost)'},
+  '多段路线(北向大长线)': {en:'multi-pitch routes (N-facing, long alpine lines)', de:'Mehrseillängen (Nord, lange alpine Linien)'},
+  '多段路线(南偏东南向)': {en:'multi-pitch routes (S/SE-facing)', de:'Mehrseillängen (Süd/Südost)'},
+  '多段路线(南向)': {en:'multi-pitch routes (S-facing)', de:'Mehrseillängen (Süd)'}
+};
+let LANG = (()=>{ try{ return localStorage.getItem(LANG_KEY) || 'zh'; }catch(e){ return 'zh'; } })();
+function t(key){ const v = (I18N[LANG]||I18N.zh)[key]; return v!=null ? v : (I18N.zh[key]||''); }
+function localizeSector(name){
+  if(!name || LANG==='zh') return name;
+  let out = name;
+  for(const zh in SECTOR_NOTE_MAP){
+    if(out.includes(zh)) out = out.replace(zh, SECTOR_NOTE_MAP[zh][LANG] || zh);
+  }
+  return out;
+}
+function setLang(lang){
+  LANG = lang;
+  try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
+  applyStaticI18n();
+  renderFilterBar();
+  rebuildMarkers();
+  if(currentSheetCragId) renderSheetContent();
+}
+function applyStaticI18n(){
+  document.getElementById('subTitle').textContent = t('subtitle');
+  document.querySelectorAll('#legendBar > span').forEach((el,i)=>{
+    const key = ['legendGood','legendMid','legendBad'][i];
+    const dot = el.querySelector('.dot');
+    el.innerHTML = '';
+    if(dot) el.appendChild(dot);
+    el.append(document.createTextNode(t(key)));
+  });
+  document.querySelector('.fab').title = t('fabTitle');
+  document.getElementById('langSwitch').innerHTML = ['zh','en','de'].map(l=>
+    `<button data-lang="${l}" class="${LANG===l?'active':''}">${l.toUpperCase()}</button>`
+  ).join('');
+  document.querySelectorAll('#langSwitch button').forEach(b=>{
+    b.onclick = ()=> setLang(b.dataset.lang);
+  });
+  document.documentElement.lang = LANG;
+}
 
 // 坐标为查证后的大致位置(岩场范围较大,取代表性入口点);
 // 壁面朝向多数为估计值,不完全确定的已在名称/说明里注明,建议实地核对。
@@ -3643,7 +3785,7 @@ function load(){
 }
 
 function dirToCompass(deg){
-  const dirs = ['北','东北','东','东南','南','西南','西','西北'];
+  const dirs = I18N[LANG]?.dirs || I18N.zh.dirs;
   return dirs[Math.round(deg/45)%8];
 }
 
@@ -3692,7 +3834,7 @@ function drawDial(faces, date, lat, lon, selectedDir){
     const lineColor = (selected || lit) ? 'var(--sun)' : 'var(--line)';
     const textColor = (selected || lit) ? 'var(--sun-soft)' : 'var(--ink-dim)';
     const lx = c + Math.cos(rad)*labelR, ly = c + Math.sin(rad)*labelR;
-    const label = f.label?f.label.replace(/[（(].*?[）)]/,''):dirToCompass(f.dir);
+    const label = dirToCompass(f.dir);
     marks += `<g class="face-spoke" data-dir="${f.dir}" style="cursor:pointer">
       <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${lineColor}" stroke-width="${selected?6:4}" stroke-linecap="round" pointer-events="none"/>
       <text x="${lx}" y="${ly}" fill="${textColor}" font-size="8.5" font-weight="${selected?'700':'500'}" text-anchor="middle" font-family="IBM Plex Mono" pointer-events="none">${label}</text>
@@ -3735,8 +3877,8 @@ function pickBestFace(sunHoursList, tmax){
 }
 function bestFaceReason(tmax){
   if(tmax==null) return '';
-  if(tmax>=26) return ' · 高温,推荐找阴面';
-  if(tmax<=12) return ' · 低温,推荐晒太阳保暖';
+  if(tmax>=26) return t('reasonHot');
+  if(tmax<=12) return t('reasonCold');
   return '';
 }
 
@@ -3756,7 +3898,7 @@ async function buildSheetHTML(c){
 
   const dayRows = days.map(d=>{
     const s = scoreFor(d);
-    const wd = new Date(d.date).toLocaleDateString('zh-CN',{weekday:'short'});
+    const wd = new Date(d.date).toLocaleDateString(t('locale'),{weekday:'short'});
     const sunH = c.faces.length ? Math.max(...c.faces.map(f=>sunHoursForFace(new Date(d.date), c.lat, c.lon, f.dir))) : 0;
     return `<div class="day-row">
       <div class="d">${wd}</div>
@@ -3777,8 +3919,8 @@ async function buildSheetHTML(c){
   function routeList(list){
     return list.map(r=>`
       <div class="route">
-        <div><span class="name">${r.name}</span><span class="tag ${r.type}">${r.type==='sport'?'运动攀':'多段 ×'+(r.pitches||'?')}</span>${r.rain==='yes'?'<span class="tag rain">☔防雨</span>':r.rain==='partial'?'<span class="tag rain">☔部分防雨</span>':''}</div>
-        <div><span class="grade">${r.grade}</span><span class="meta"> · ${dirToCompass(r.dir)}向</span></div>
+        <div><span class="name">${r.name}</span><span class="tag ${r.type}">${r.type==='sport'?t('tagSport'):t('tagMulti')+(r.pitches||'?')}</span>${r.rain==='yes'?`<span class="tag rain">${t('tagRainYes')}</span>`:r.rain==='partial'?`<span class="tag rain">${t('tagRainPartial')}</span>`:''}</div>
+        <div><span class="grade">${r.grade}</span><span class="meta"> · ${dirToCompass(r.dir)}${t('metaFacing')}</span></div>
       </div>`).join('');
   }
   // 分区较多时(比如 Kallmünz 这种一个岩场下有十几个独立岩壁)按 sector 字段分组显示,避免几百条线路堆成一坨
@@ -3786,54 +3928,54 @@ async function buildSheetHTML(c){
     if(!list.some(r=>r.sector)) return routeList(list);
     const order = [], groups = {};
     list.forEach(r=>{
-      const key = r.sector || '其他';
+      const key = r.sector || '—';
       if(!groups[key]){ groups[key]=[]; order.push(key); }
       groups[key].push(r);
     });
-    return order.map(key=>`<details class="sector-group"><summary>${key} (${groups[key].length})</summary>${routeList(groups[key])}</details>`).join('');
+    return order.map(key=>`<details class="sector-group"><summary>${localizeSector(key)} (${groups[key].length})</summary>${routeList(groups[key])}</details>`).join('');
   }
   const noRoutes = activeRoutes.length===0
     ? (sheetFaceFilter!=null
-        ? `<div class="hint">这个朝向暂时没有收录线路。</div>`
-        : `<div class="hint">还没有线路数据。</div>`)
+        ? `<div class="hint">${t('noRoutesThisFace')}</div>`
+        : `<div class="hint">${t('noRoutesAtAll')}</div>`)
     : '';
   const filterChip = sheetFaceFilter!=null
-    ? `<div class="filter-chip"><span>只看${dirToCompass(sheetFaceFilter)}向 (${activeRoutes.length})</span><button data-clear-filter type="button">清除筛选 ✕</button></div>`
+    ? `<div class="filter-chip"><span>${t('onlyFacing')(dirToCompass(sheetFaceFilter))} (${activeRoutes.length})</span><button data-clear-filter type="button">${t('clearFilter')}</button></div>`
     : '';
   const rainRouteCount = c.routes.filter(r=>r.rain==='yes'||r.rain==='partial').length;
   let rainBadge = '';
-  if(c.rain==='yes') rainBadge = '<div class="rain-badge good">☔ 官网标注防雨</div>';
-  else if(c.rain==='partial') rainBadge = '<div class="rain-badge good">☔ 官网标注部分防雨</div>';
-  else if(c.rain==='no') rainBadge = '<div class="rain-badge bad">☔ 官网标注不防雨</div>';
-  else if(rainRouteCount>0) rainBadge = `<div class="rain-badge good">☔ 有 ${rainRouteCount} 条线路标了防雨/部分防雨(见下面线路列表)</div>`;
+  if(c.rain==='yes') rainBadge = `<div class="rain-badge good">${t('rainBadgeYes')}</div>`;
+  else if(c.rain==='partial') rainBadge = `<div class="rain-badge good">${t('rainBadgePartial')}</div>`;
+  else if(c.rain==='no') rainBadge = `<div class="rain-badge bad">${t('rainBadgeNo')}</div>`;
+  else if(rainRouteCount>0) rainBadge = `<div class="rain-badge good">${t('rainBadgeSome')(rainRouteCount)}</div>`;
 
   return `
     <div class="crag-head">
       <div>
         <h2>${c.name}</h2>
-        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · 今日最佳朝向 ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}h 直射${bestFaceReason(days[0]?.tmax)})</div>
+        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · ${t('bestOrientation')} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[0]?.tmax)})</div>
         ${rainBadge}
       </div>
       <div class="score">
         <div class="val" style="color:${sc.color}">${sc.val ?? '—'}</div>
-        <div class="lbl">今日指数</div>
+        <div class="lbl">${t('todayIndex')}</div>
       </div>
     </div>
     <div class="contour"></div>
     <div class="body-grid">
       <div class="dial-wrap">
         ${drawDial(c.faces, new Date(), c.lat, c.lon, sheetFaceFilter)}
-        <div class="dial-cap">壁面朝向 · 今日日照${c.faces.length>1?' · 点朝向筛选线路':''}</div>
+        <div class="dial-cap">${t('dialCap')}${c.faces.length>1?t('dialCapFilterHint'):''}</div>
       </div>
-      <div class="days">${dayRows || '<div class="hint">天气数据加载失败,稍后重试</div>'}</div>
+      <div class="days">${dayRows || `<div class="hint">${t('weatherFailed')}</div>`}</div>
     </div>
     <div class="routes">
       ${filterChip}
-      ${routesByType.sport.length?`<details open><summary>运动攀线路 (${routesByType.sport.length})</summary>${routeListMaybeGrouped(routesByType.sport)}</details>`:''}
-      ${routesByType.multi.length?`<details open><summary>多段线路 (${routesByType.multi.length})</summary>${routeListMaybeGrouped(routesByType.multi)}</details>`:''}
+      ${routesByType.sport.length?`<details open><summary>${t('sportRoutes')} (${routesByType.sport.length})</summary>${routeListMaybeGrouped(routesByType.sport)}</details>`:''}
+      ${routesByType.multi.length?`<details open><summary>${t('multiRoutes')} (${routesByType.multi.length})</summary>${routeListMaybeGrouped(routesByType.multi)}</details>`:''}
       ${noRoutes}
     </div>
-    <a class="feedback-link" href="https://github.com/Mengmeng0666/Weather-for-the-crags/issues/new?title=${encodeURIComponent('岩场信息反馈:'+c.name)}" target="_blank" rel="noopener">发现信息有误 / 想补充?去 GitHub 反馈 →</a>
+    <a class="feedback-link" href="https://github.com/Mengmeng0666/Weather-for-the-crags/issues/new?title=${encodeURIComponent(t('feedbackTitlePrefix')+c.name)}" target="_blank" rel="noopener">${t('feedbackLink')}</a>
   `;
 }
 
@@ -3861,7 +4003,7 @@ async function openSheet(id){
   sheetFaceFilter = null;
   const sheet = document.getElementById('sheet');
   const content = document.getElementById('sheetContent');
-  content.innerHTML = `<div class="empty">加载 ${c.name} 中…</div>`;
+  content.innerHTML = `<div class="empty">${t('loading')(c.name)}</div>`;
   document.getElementById('sheetBackdrop').classList.add('open');
   sheet.classList.add('open');
   await renderSheetContent();
@@ -3920,15 +4062,16 @@ async function rebuildMarkers(){
 
 function renderFilterBar(){
   const bar = document.getElementById('filterBar');
-  const opts = [['all','全部'],['sport','运动攀'],['multi','多段线路']];
+  const opts = [['all',t('filterAll')],['sport',t('filterSport')],['multi',t('filterMulti')]];
   bar.innerHTML = opts.map(([k,l])=>`<div class="chip ${filter.type===k?'active':''}" data-f="${k}">${l}</div>`).join('')
-    + `<div class="chip ${filter.rain?'active':''}" id="rainChip">☔ 雨天可爬</div>`;
+    + `<div class="chip ${filter.rain?'active':''}" id="rainChip">${t('filterRain')}</div>`;
   bar.querySelectorAll('[data-f]').forEach(el=>{
     el.onclick = ()=>{ filter.type = el.dataset.f; renderFilterBar(); rebuildMarkers(); };
   });
   document.getElementById('rainChip').onclick = ()=>{ filter.rain = !filter.rain; renderFilterBar(); rebuildMarkers(); };
 }
 
+applyStaticI18n();
 renderFilterBar();
 initMap();
 rebuildMarkers();
