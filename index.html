@@ -53,7 +53,12 @@
   .toolbar{
     display:flex;gap:8px;padding:12px 20px;overflow-x:auto;border-bottom:1px solid var(--line);
     flex:none;align-items:center;
+    scrollbar-width:none;
+    /* 右边缘渐隐:提示这一条能横向滑动(日期按钮在窄屏下会被截断在外面) */
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent);
+    mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 30px),transparent);
   }
+  .toolbar::-webkit-scrollbar{display:none;}
   .chip{
     flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);
     background:var(--panel);color:var(--ink-dim);font-size:12.5px;font-family:'IBM Plex Mono',monospace;
@@ -62,11 +67,16 @@
   .chip.active{background:var(--sun);border-color:var(--sun);color:#1c2321;font-weight:600;}
   .chip-sep{width:1px;background:var(--line);flex:none;align-self:stretch;margin:2px 4px;}
   .legend{
-    display:flex;gap:12px;padding:0 20px 12px;font-size:10.5px;color:var(--ink-dim);
-    font-family:'IBM Plex Mono',monospace;flex:none;align-items:center;flex-wrap:wrap;
+    display:flex;column-gap:16px;row-gap:4px;padding:2px 20px 12px;font-size:11px;color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;flex:none;align-items:center;flex-wrap:wrap;line-height:1.7;
   }
-  .legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+  .legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
   .legend .imp-link{margin-left:auto;color:var(--ink-dim);text-decoration:none;flex:none;}
+  @media (max-width:480px){
+    .toolbar{gap:6px;padding:10px 14px;}
+    .chip{padding:6px 10px;font-size:12px;}
+    .legend{padding:2px 14px 10px;column-gap:12px;font-size:10.5px;}
+  }
   #map{flex:1;position:relative;z-index:1;}
   #map .leaflet-container{background:#12403a;}
   .crag-marker{
@@ -216,9 +226,9 @@
 
 <div class="toolbar" id="filterBar"></div>
 <div class="legend" id="legendBar">
-  <span><span class="dot" style="background:var(--good)"></span>今日指数≥70 · 适合去</span>
-  <span><span class="dot" style="background:var(--mid)"></span>40–69 · 看情况</span>
-  <span><span class="dot" style="background:var(--bad)"></span>&lt;40 · 大概率湿/多云</span>
+  <span><span class="dot" style="background:var(--good)"></span>指数≥70 适合去</span>
+  <span><span class="dot" style="background:var(--mid)"></span>40–69 看情况</span>
+  <span><span class="dot" style="background:var(--bad)"></span>&lt;40 大概率湿</span>
   <a class="imp-link" href="impressum.html">Impressum</a>
 </div>
 
@@ -241,11 +251,11 @@ const LANG_KEY = 'alpenwand_lang';
 const I18N = {
   zh: {
     subtitle: '慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路',
-    legendGood: '指数≥70 · 适合去',
+    legendGood: '指数≥70 适合去',
     dayToday: '今天', scoreWord: '指数',
     bestOrientationDay: (wd)=>`${wd}最佳朝向`,
-    legendMid: '40–69 · 看情况',
-    legendBad: '<40 · 大概率湿/多云',
+    legendMid: '40–69 看情况',
+    legendBad: '<40 大概率湿',
     filterAll: '全部', filterSport: '运动攀', filterMulti: '多段线路', filterRain: '☔ 雨天可爬',
     fabTitle: '反馈 / 建议新增岩场',
     bestOrientation: '今日最佳朝向', directSun: 'h 直射',
@@ -272,11 +282,11 @@ const I18N = {
   },
   en: {
     subtitle: 'Munich · Alpine crag map · Sun / weather / routes',
-    legendGood: 'Score ≥70 · good to go',
+    legendGood: 'Score ≥70 · good',
     dayToday: 'Today', scoreWord: 'score',
     bestOrientationDay: (wd)=>`Best face ${wd}`,
-    legendMid: '40–69 · check conditions',
-    legendBad: '<40 · likely wet/cloudy',
+    legendMid: '40–69 · borderline',
+    legendBad: '<40 · likely wet',
     filterAll: 'All', filterSport: 'Sport', filterMulti: 'Multi-pitch', filterRain: '☔ Rain-safe',
     fabTitle: 'Feedback / suggest a crag',
     bestOrientation: 'Best face today', directSun: 'h direct sun',
@@ -303,11 +313,11 @@ const I18N = {
   },
   de: {
     subtitle: 'München · Alpine Kletterfelsen-Karte · Sonne / Wetter / Routen',
-    legendGood: 'Wert ≥70 · gut geeignet',
+    legendGood: 'Wert ≥70 · gut',
     dayToday: 'Heute', scoreWord: 'Wert',
     bestOrientationDay: (wd)=>`Beste Wand am ${wd}`,
-    legendMid: '40–69 · je nach Lust',
-    legendBad: '<40 · wahrscheinlich nass/bewölkt',
+    legendMid: '40–69 · durchwachsen',
+    legendBad: '<40 · eher nass',
     filterAll: 'Alle', filterSport: 'Sportklettern', filterMulti: 'Mehrseillängen', filterRain: '☔ Regensicher',
     fabTitle: 'Feedback / Fels vorschlagen',
     bestOrientation: 'Beste Wand heute', directSun: 'h direkte Sonne',
