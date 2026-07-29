@@ -145,6 +145,10 @@
   .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:2px 7px;border-radius:999px;margin-left:6px;}
   .tag.sport{background:rgba(91,140,158,.2);color:var(--sport);}
   .tag.multi{background:rgba(192,105,63,.2);color:var(--multi);}
+  .tag.rain{background:rgba(91,140,158,.2);color:var(--glacier);}
+  .rain-badge{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:11px;font-family:'IBM Plex Mono',monospace;}
+  .rain-badge.good{background:rgba(127,174,110,.18);color:var(--good);}
+  .rain-badge.bad{background:rgba(182,84,63,.18);color:var(--bad);}
   .grade{font-family:'IBM Plex Mono',monospace;color:var(--sun-soft);font-weight:600;}
   .empty{text-align:center;color:var(--ink-dim);padding:22px 20px;font-size:13px;}
   dialog{border:none;border-radius:16px;background:var(--panel);color:var(--ink);width:min(92vw,480px);padding:0;}
@@ -304,7 +308,7 @@ const DEFAULT_CRAGS = [
   // Flintsbach 数据来源:munichclimbs.de,坐标已按真实位置修正(原来的估计点偏了约3公里)。
   // 官网标注 Steinbruch 分区"6月1日前关闭"——没说明是不是每年固定,不像 juraclimbs 那些标"每年"的那么确定,去之前自己确认一下。
   // 官网只给了整片岩壁的朝向"N, O"(北、东),没细分到每个分区具体哪面朝哪,所以下面线路的朝向都按北向粗略处理,不是精确值。
-  { id:'flintsbach', name:'Flintsbach am Inn', lat:47.717149, lon:12.124003,
+  { id:'flintsbach', name:'Flintsbach am Inn', lat:47.717149, lon:12.124003, rain:'no', // 官网明确标注"nicht regensicher"
     faces:[{dir:0,label:'北/东壁(官网只给整体朝向,未细分到分区)'}],
     routes:[
       {name:'Thunderbolt', grade:'8+', type:'sport', dir:0, sector:'Steinbruch(6月1日前关闭,是否每年固定未知)'},
@@ -393,7 +397,7 @@ const DEFAULT_CRAGS = [
     ] },
   // Morsbach 数据来源:munichclimbs.de,50条完整线路(比之前 bergsteigen.com 的抽样完整得多,已替换)。
   // 难度是法国制(跟 Arco/Gramai 同一套),坐标也按 munichclimbs 给的更精确值修正。网站没细分分区,所以线路没有 sector 字段。
-  { id:'morsbach', name:'Morsbach (bei Kufstein)', lat:47.592652, lon:12.149211,
+  { id:'morsbach', name:'Morsbach (bei Kufstein)', lat:47.592652, lon:12.149211, rain:'no', // 官网明确标注"nicht regensicher"
     faces:[
       {dir:180,label:'南壁'},
       {dir:90,label:'东壁'}
@@ -2061,7 +2065,7 @@ const DEFAULT_CRAGS = [
     ] },
   // Dollnstein 数据来源:munichclimbs.de(Burgstein + 附近的 Dollnsteiner Turm / Dollnsteiner Wand,三个岩壁都在 Dollnstein 村子附近,一起归到这一个点)。
   // 坐标取三个岩壁的平均位置,朝向不止一面的塔状岩壁(Burgstein)已经按官网给的东/南/西子分区分开处理了。
-  { id:'altmuehltal_dollnstein', name:'Altmühltal — Dollnstein (Burgsteinfelsen)', lat:48.8744, lon:11.0849,
+  { id:'altmuehltal_dollnstein', name:'Altmühltal — Dollnstein (Burgsteinfelsen)', lat:48.8744, lon:11.0849, rain:'no', // Burgstein 官网标注"nicht regensicher"(Dollnsteiner Turm/Wand 没单独查)
     faces:[
       {dir:180,label:'南壁(Burgstein-Südseite / Dollnsteiner Turm+Wand)'},
       {dir:270,label:'西壁(Burgstein-Westseite)'},
@@ -2251,6 +2255,7 @@ const DEFAULT_CRAGS = [
   // 这是新加的点,不是地图上原有的 Konstein/Dollnstein(那两处 juraclimbs.de 没有收录,坐标在更西边的艾希施泰特一带,继续留空)。
   // 数据来源:juraclimbs.de,53 个分区,坐标取全部岩壁的平均中心点。
   // Deutsch-Österreicher Turm、Schellneckkopf 官网标注每年 1/1或2/1–7/31 关闭(护鸟繁殖期);Kastlhöhle Rechts 相反,每年10/1–3/31 关闭。少数无难度的"Projekt"已跳过,没有编造。
+  // 雨天:53个分区里只有 Gröglinger Wand(16条)官网明确标"teilweise regengeschützt"(部分防雨),已经在线路上标了 rain:'partial'。其余分区没逐个查,不代表都不防雨,只是没数据。
   { id:'altmuehltal_prunn_essing', name:'Altmühltal — Prunn/Essing/Nußhausen (bei Riedenburg)', lat:48.9477, lon:11.7476,
     faces:[
       {dir:0,label:'北壁(Märchenturm / Klausfels 等,分区最多)'},
@@ -2263,22 +2268,22 @@ const DEFAULT_CRAGS = [
       {dir:315,label:'西北壁(Kastlhöhle / Schellneckwand 等)'}
     ],
     routes:[
-      {name:'No Name', grade:'5', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Rotzlöffel', grade:'5+', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Eglmeier', grade:'7-', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Mittel der Wahl', grade:'7-', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Resilienz', grade:'7', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Schwere Geburt', grade:'7+', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Reibungskoeffizient', grade:'6-', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Kopfzerbrechen', grade:'8-', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Trau di, trad mi', grade:'5+', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Rechts nicht links liegen lassen', grade:'6', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Familiengründung', grade:'6-', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Get up, stand up', grade:'6-', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Zugzwang', grade:'7', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'The real bastard', grade:'8-/8', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Mooshammer', grade:'6+', type:'sport', dir:315, sector:'Gröglinger Wand'},
-      {name:'Altseilverwertung', grade:'6+', type:'sport', dir:315, sector:'Gröglinger Wand'},
+      {name:'No Name', grade:'5', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Rotzlöffel', grade:'5+', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Eglmeier', grade:'7-', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Mittel der Wahl', grade:'7-', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Resilienz', grade:'7', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Schwere Geburt', grade:'7+', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Reibungskoeffizient', grade:'6-', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Kopfzerbrechen', grade:'8-', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Trau di, trad mi', grade:'5+', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Rechts nicht links liegen lassen', grade:'6', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Familiengründung', grade:'6-', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Get up, stand up', grade:'6-', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Zugzwang', grade:'7', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'The real bastard', grade:'8-/8', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Mooshammer', grade:'6+', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
+      {name:'Altseilverwertung', grade:'6+', type:'sport', dir:315, sector:'Gröglinger Wand', rain:'partial'},
 
       {name:'Marienkäferweg', grade:'6', type:'sport', dir:270, sector:'Töging - Sanduhrenwand'},
       {name:'Sanduhrenhighway', grade:'6-', type:'sport', dir:270, sector:'Töging - Sanduhrenwand'},
@@ -3113,34 +3118,35 @@ const DEFAULT_CRAGS = [
   // 以下 7 个是 munichclimbs.de 上有、但地图上还没有的区域。先只标坐标和朝向,线路还没加(用户要求先不加)。
   // 坐标取该区域里线路最多/最大的那个岩壁,朝向也是那个岩壁的真实朝向,不是估计。区域里其他分区名字列在注释里,以后要加线路时参考。
   // Tölzer Land(munichclimbs.de/Toelzer_Land,共9个分区):Bad Heilbrunn(70条) / Meilenstein(17) / Kuhgarten(13) / Hohenburg(24) / Roß- und Buchstein(121,最大) / Daffensteine(58) / Feichteck(17) / Zirkuskessel(48) / Vorderer Kirchstein(26)
-  { id:'toelzer_land', name:'Tölzer Land (Roß- und Buchstein 等)', lat:47.6320, lon:11.6774,
+  // 雨天标注:代表岩壁 Roß- und Buchstein 官网写"nicht regensicher",区域里其他8个分区没有逐个查。
+  { id:'toelzer_land', name:'Tölzer Land (Roß- und Buchstein 等)', lat:47.6320, lon:11.6774, rain:'no',
     faces:[{dir:180,label:'南壁(Roß- und Buchstein,区域内多数分区朝南/西)'}],
     routes:[] },
-  // Reutte(munichclimbs.de/Reutte,共2个分区):Kraftwerkwand(86条,西向) / Weißewand(60条,南向)
-  { id:'reutte', name:'Reutte (Kraftwerkwand / Weißewand)', lat:47.5508, lon:10.6765,
+  // Reutte(munichclimbs.de/Reutte,共2个分区):Kraftwerkwand(86条,西向,官网标"nicht regensicher") / Weißewand(60条,南向,没单独查)
+  { id:'reutte', name:'Reutte (Kraftwerkwand / Weißewand)', lat:47.5508, lon:10.6765, rain:'no',
     faces:[
       {dir:270,label:'西壁(Kraftwerkwand)'},
       {dir:180,label:'南壁(Weißewand)'}
     ],
     routes:[] },
-  // Oberammergau(munichclimbs.de/Oberammergau,共8个分区):Frauenwasserl(47条,最大) / Falkenwand(41) / Kofel(24) / Friedhofswand(13,北向) / Bärenhöhle(13) / Kraxentrager(40,西南向) / Little Paradise(16) / Oberau(38)
-  { id:'oberammergau', name:'Oberammergau (Frauenwasserl 等)', lat:47.5821, lon:11.0678,
+  // Oberammergau(munichclimbs.de/Oberammergau,共8个分区):Frauenwasserl(47条,最大,官网标"nicht regensicher") / Falkenwand(41) / Kofel(24) / Friedhofswand(13,北向) / Bärenhöhle(13) / Kraxentrager(40,西南向) / Little Paradise(16) / Oberau(38)
+  { id:'oberammergau', name:'Oberammergau (Frauenwasserl 等)', lat:47.5821, lon:11.0678, rain:'no',
     faces:[
       {dir:180,label:'南壁(Frauenwasserl,区域内多数分区)'},
       {dir:0,label:'北壁(Friedhofswand)'}
     ],
     routes:[] },
-  // Mangfallgebirge(munichclimbs.de/Mangfallgebirge,共4个分区):Taubenstein(35条,南向) / Ruchenköpfe(64,东/南/西) / Sebaldstein(28,北向) / Krettenburg(127条,最大,南向)
-  { id:'mangfallgebirge', name:'Mangfallgebirge (Krettenburg 等)', lat:47.6711, lon:11.8506,
+  // Mangfallgebirge(munichclimbs.de/Mangfallgebirge,共4个分区):Taubenstein(35条,南向) / Ruchenköpfe(64,东/南/西) / Sebaldstein(28,北向) / Krettenburg(127条,最大,南向,官网标"nicht regensicher")
+  { id:'mangfallgebirge', name:'Mangfallgebirge (Krettenburg 等)', lat:47.6711, lon:11.8506, rain:'no',
     faces:[
       {dir:180,label:'南壁(Krettenburg,区域内多数分区)'},
       {dir:0,label:'北壁(Sebaldstein)'}
     ],
     routes:[] },
-  // Chiemgau(munichclimbs.de/Chiemgau,共9个分区):Pleitewandl(98条) / Auerwandl(32) / Siffwandl(10) / Zellerwand(206条,已加) / Eglseeplatte(8,西向) / Bergen(73,北向) / Kaltwasserl(117) / Buchauerwand(25) / Kampenwand(27,知名山峰)——除 Zellerwand 外其余8个分区还没加线路。
+  // Chiemgau(munichclimbs.de/Chiemgau,共9个分区):Pleitewandl(98条) / Auerwandl(32) / Siffwandl(10) / Zellerwand(206条,已加,官网标"not rain-protected") / Eglseeplatte(8,西向) / Bergen(73,北向) / Kaltwasserl(117) / Buchauerwand(25) / Kampenwand(27,知名山峰)——除 Zellerwand 外其余8个分区还没加线路。
   // Zellerwand 数据来源:munichclimbs.de,10个分区,全部南向(官网只给整体朝向,没有细分到分区)。
   // 5条跳过了:2条"Projekt"没难度,3条源网页里名字是空的(只有难度没有名字),没有编造名字。
-  { id:'chiemgau', name:'Chiemgau (Zellerwand 等)', lat:47.7365, lon:12.4114,
+  { id:'chiemgau', name:'Chiemgau (Zellerwand 等)', lat:47.7365, lon:12.4114, rain:'no',
     faces:[
       {dir:180,label:'南壁(Zellerwand,区域内多数分区)'},
       {dir:0,label:'北壁(Bergen)'}
@@ -3360,8 +3366,8 @@ const DEFAULT_CRAGS = [
   { id:'eichenau', name:'Eichenau (bei München)', lat:48.1831, lon:11.3169,
     faces:[{dir:180,label:'南壁(塔状岩壁,官网标N/O/S/W四面都有,这里按主要朝向处理)'}],
     routes:[] },
-  // Garmisch(munichclimbs.de/Garmisch,共2个分区):Techno Wandl(20条,南向) / Katzenstein(27条,北向)
-  { id:'garmisch', name:'Garmisch (Techno Wandl / Katzenstein)', lat:47.4751, lon:11.0682,
+  // Garmisch(munichclimbs.de/Garmisch,共2个分区):Techno Wandl(20条,南向) / Katzenstein(27条,北向,官网标"nicht regensicher")
+  { id:'garmisch', name:'Garmisch (Techno Wandl / Katzenstein)', lat:47.4751, lon:11.0682, rain:'no',
     faces:[
       {dir:180,label:'南壁(Techno Wandl)'},
       {dir:0,label:'北壁(Katzenstein)'}
@@ -3477,7 +3483,12 @@ const DEFAULT_HUTS = [
 ];
 
 let crags = load();
-let filter = {type:'all'};
+let filter = {type:'all', rain:false};
+// 判断一个岩场算不算"雨天可爬":岩场整体标了 yes/partial,或者里面至少有一个分区/线路标了 yes/partial
+function cragHasRainOption(c){
+  if(c.rain==='yes' || c.rain==='partial') return true;
+  return c.routes.some(r=>r.rain==='yes' || r.rain==='partial');
+}
 let map, markers = {};
 let currentSheetCragId = null;
 let sheetFaceFilter = null; // 点罗盘上某个朝向,只看这个朝向的线路;再点一次或点"清除筛选"恢复全部
@@ -3630,7 +3641,7 @@ async function buildSheetHTML(c){
   function routeList(list){
     return list.map(r=>`
       <div class="route">
-        <div><span class="name">${r.name}</span><span class="tag ${r.type}">${r.type==='sport'?'运动攀':'多段 ×'+(r.pitches||'?')}</span></div>
+        <div><span class="name">${r.name}</span><span class="tag ${r.type}">${r.type==='sport'?'运动攀':'多段 ×'+(r.pitches||'?')}</span>${r.rain==='yes'?'<span class="tag rain">☔防雨</span>':r.rain==='partial'?'<span class="tag rain">☔部分防雨</span>':''}</div>
         <div><span class="grade">${r.grade}</span><span class="meta"> · ${dirToCompass(r.dir)}向</span></div>
       </div>`).join('');
   }
@@ -3653,12 +3664,19 @@ async function buildSheetHTML(c){
   const filterChip = sheetFaceFilter!=null
     ? `<div class="filter-chip"><span>只看${dirToCompass(sheetFaceFilter)}向 (${activeRoutes.length})</span><button data-clear-filter type="button">清除筛选 ✕</button></div>`
     : '';
+  const rainRouteCount = c.routes.filter(r=>r.rain==='yes'||r.rain==='partial').length;
+  let rainBadge = '';
+  if(c.rain==='yes') rainBadge = '<div class="rain-badge good">☔ 官网标注防雨</div>';
+  else if(c.rain==='partial') rainBadge = '<div class="rain-badge good">☔ 官网标注部分防雨</div>';
+  else if(c.rain==='no') rainBadge = '<div class="rain-badge bad">☔ 官网标注不防雨</div>';
+  else if(rainRouteCount>0) rainBadge = `<div class="rain-badge good">☔ 有 ${rainRouteCount} 条线路标了防雨/部分防雨(见下面线路列表)</div>`;
 
   return `
     <div class="crag-head">
       <div>
         <h2>${c.name}</h2>
         <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · 今日最佳朝向 ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}h 直射${bestFaceReason(days[0]?.tmax)})</div>
+        ${rainBadge}
       </div>
       <div class="score">
         <div class="val" style="color:${sc.color}">${sc.val ?? '—'}</div>
@@ -3754,8 +3772,9 @@ async function rebuildMarkers(){
   Object.values(markers).forEach(m=>map.removeLayer(m));
   markers = {};
   const filtered = crags.filter(c=>{
-    if(filter.type==='all') return true;
-    return c.routes.some(r=>r.type===filter.type);
+    if(filter.type!=='all' && !c.routes.some(r=>r.type===filter.type)) return false;
+    if(filter.rain && !cragHasRainOption(c)) return false;
+    return true;
   });
   for(const c of filtered){
     const wx = await fetchWeather(c.lat, c.lon);
@@ -3777,10 +3796,12 @@ function renderFilterBar(){
   const bar = document.getElementById('filterBar');
   const opts = [['all','全部'],['sport','运动攀'],['multi','多段线路']];
   bar.innerHTML = opts.map(([k,l])=>`<div class="chip ${filter.type===k?'active':''}" data-f="${k}">${l}</div>`).join('')
+    + `<div class="chip ${filter.rain?'active':''}" id="rainChip">☔ 雨天可爬</div>`
     + `<div class="chip" id="importChip">↓ theCrag 导入</div>`;
   bar.querySelectorAll('[data-f]').forEach(el=>{
     el.onclick = ()=>{ filter.type = el.dataset.f; renderFilterBar(); rebuildMarkers(); };
   });
+  document.getElementById('rainChip').onclick = ()=>{ filter.rain = !filter.rain; renderFilterBar(); rebuildMarkers(); };
   document.getElementById('importChip').onclick = ()=>document.getElementById('importDialog').showModal();
 }
 
