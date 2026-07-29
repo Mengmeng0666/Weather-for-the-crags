@@ -65,6 +65,7 @@
     font-family:'IBM Plex Mono',monospace;flex:none;align-items:center;flex-wrap:wrap;
   }
   .legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+  .legend .imp-link{margin-left:auto;color:var(--ink-dim);text-decoration:none;flex:none;}
   #map{flex:1;position:relative;z-index:1;}
   #map .leaflet-container{background:#12403a;}
   .crag-marker{
@@ -216,11 +217,12 @@
   <span><span class="dot" style="background:var(--good)"></span>今日指数≥70 · 适合去</span>
   <span><span class="dot" style="background:var(--mid)"></span>40–69 · 看情况</span>
   <span><span class="dot" style="background:var(--bad)"></span>&lt;40 · 大概率湿/多云</span>
+  <a class="imp-link" href="impressum.html">Impressum</a>
 </div>
 
 <div id="map"></div>
 
-<a class="fab" href="https://github.com/Mengmeng0666/Weather-for-the-crags/issues/new" target="_blank" rel="noopener" title="反馈 / 建议新增岩场">💬</a>
+<a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场">✉️</a>
 
 <div class="sheet-backdrop" id="sheetBackdrop"></div>
 <div class="sheet" id="sheet">
