@@ -74,17 +74,6 @@
     font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:#101613;
     box-shadow:0 3px 10px rgba(0,0,0,.5);
   }
-  .hut-marker{
-    display:flex;align-items:center;justify-content:center;
-    width:30px;height:30px;border-radius:8px;
-    background:var(--panel-2);border:2px solid var(--sun-soft);
-    font-size:15px;
-    box-shadow:0 3px 10px rgba(0,0,0,.5);
-  }
-  .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:10px;}
-  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13px;margin:10px 12px;}
-  .leaflet-popup-tip{background:var(--panel);}
-  .leaflet-popup-close-button{color:var(--ink-dim)!important;}
   .fab{
     position:fixed;right:18px;bottom:18px;z-index:1200;
     width:52px;height:52px;border-radius:50%;
@@ -3523,8 +3512,8 @@ const DEFAULT_CRAGS = [
       {dir:0,label:'北壁(Katzenstein)'}
     ],
     routes:[] },
-  // Gimpelhaus 数据来源:climbers-paradise.com。两片攀岩区都在山屋附近/上方,没有单独更精确的坐标,
-  // 这里坐标在山屋(1659m,见下面 DEFAULT_HUTS)基础上稍微往山上挪了一点,纯粹是为了地图上岩场圆点和小房子图标不重叠,不代表精确位置。
+  // Gimpelhaus 数据来源:climbers-paradise.com。两片攀岩区都在山屋(1659m,47.488268/10.599882)附近/上方,没有单独更精确的坐标,
+  // 这里的坐标是从山屋位置稍微往山上挪过一点的(当时是为了跟地图上的小房子图标错开;小房子图标后来删了,坐标保留没动,本来也不是精确值)。
   // "Die verbotene Stadt"官网说朝向"北(阴,长线路)和南(短,晒得到)混合",没细分到每条线路,这里统一按北处理,只是显示用,不代表每条都朝北。
   // 2条因为没名字/没难度跳过了(没编造)。Marco Polo 那条的"6b+"写法是原网站给的,和其他条目风格不一样,原样保留没有改。
   { id:'gimpelhaus', name:'Gimpelhaus (Tannheimer Tal)', lat:47.4908, lon:10.6018,
@@ -3808,11 +3797,6 @@ const DEFAULT_CRAGS = [
   { id:'herwartsteine', name:'Herwartsteine (Königsbronn)', lat:48.743064, lon:10.11239,
     faces:[{dir:45,label:'东北壁(每年3/1–7/15因护鸟关闭,请核实)'}],
     routes:[] }
-];
-
-// 山屋(Hütte),地图上用小房子图标标出,跟岩场的圆形天气标记区分开。目前只是个固定列表,没有做编辑功能。
-const DEFAULT_HUTS = [
-  { id:'gimpelhaus', name:'Gimpelhaus', lat:47.488268, lon:10.599882, elevation:1659 }
 ];
 
 let crags = load();
@@ -4099,19 +4083,6 @@ function initMap(){
   }).addTo(map);
 }
 
-function addHutMarkers(){
-  DEFAULT_HUTS.forEach(h=>{
-    const icon = L.divIcon({
-      className:'',
-      html:`<div class="hut-marker" title="${h.name}">🏠</div>`,
-      iconSize:[30,30], iconAnchor:[15,15]
-    });
-    const m = L.marker([h.lat, h.lon], {icon}).addTo(map);
-    m.bindTooltip(h.name, {direction:'top', offset:[0,-14]});
-    m.bindPopup(`<b>${h.name}</b>${h.elevation?`<br>${h.elevation} m`:''}`);
-  });
-}
-
 let clusterGroup = null;
 async function rebuildMarkers(){
   // 上一版是逐个 await 天气(27个岩场要排队十几秒),改成并发一起请求;
@@ -4210,7 +4181,6 @@ renderFilterBar();
 initSearch();
 initMap();
 rebuildMarkers();
-addHutMarkers();
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
