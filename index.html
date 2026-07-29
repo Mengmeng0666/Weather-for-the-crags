@@ -189,11 +189,16 @@
   .search-item .sec{color:var(--ink-dim);font-size:11px;margin-left:6px;}
   .search-empty{padding:9px 12px;font-size:12px;color:var(--ink-dim);}
   .cluster-marker{
-    display:flex;align-items:center;justify-content:center;
+    position:relative;display:flex;align-items:center;justify-content:center;
     width:40px;height:40px;border-radius:50%;
-    background:var(--panel-2);border:2.5px solid var(--sun);
-    color:var(--sun-soft);font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;
+    border:2.5px solid var(--bg);
+    color:#101613;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;
     box-shadow:0 3px 10px rgba(0,0,0,.5);
+  }
+  .cluster-marker .cnt{
+    position:absolute;bottom:-5px;right:-8px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+    font-size:9px;font-weight:600;padding:1px 5px;border-radius:999px;line-height:1.4;
   }
   .grade-hist{margin:0 0 12px;}
   .gh-title{font-size:10.5px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;margin-bottom:4px;}
@@ -4125,11 +4130,18 @@ async function rebuildMarkers(){
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 42,
       showCoverageOnHover: false,
-      iconCreateFunction: cluster => L.divIcon({
-        className:'',
-        html:`<div class="cluster-marker">${cluster.getChildCount()}</div>`,
-        iconSize:[40,40], iconAnchor:[20,20]
-      })
+      // 聚合点不只显示数量:主体显示这一片里最高的今日指数并按红黄绿着色(天气一眼预览不丢),右下角小角标是合并的岩场数
+      iconCreateFunction: cluster => {
+        const children = cluster.getAllChildMarkers();
+        const scores = children.map(m=>m.options.cragScore).filter(v=>typeof v==='number');
+        const best = scores.length ? Math.max(...scores) : null;
+        const color = best==null ? 'var(--ink-dim)' : (best>=70?'var(--good)':(best>=40?'var(--mid)':'var(--bad)'));
+        return L.divIcon({
+          className:'',
+          html:`<div class="cluster-marker" style="background:${color}">${best==null?'—':best}<span class="cnt">×${children.length}</span></div>`,
+          iconSize:[40,40], iconAnchor:[20,20]
+        });
+      }
     });
   }
   const wxList = await Promise.all(filtered.map(c=>fetchWeather(c.lat, c.lon)));
@@ -4142,7 +4154,7 @@ async function rebuildMarkers(){
       html:`<div class="crag-marker" style="background:${color}">${score}</div>`,
       iconSize:[38,38], iconAnchor:[19,19]
     });
-    const m = L.marker([c.lat, c.lon], {icon});
+    const m = L.marker([c.lat, c.lon], {icon, cragScore: (typeof score==='number' ? score : null)});
     m.bindTooltip(c.name, {direction:'top', offset:[0,-16]});
     m.on('click', ()=>openSheet(c.id));
     if(clusterGroup){ clusterGroup.addLayer(m); } else { m.addTo(map); }
