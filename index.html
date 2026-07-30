@@ -159,7 +159,7 @@
   .tag.sport{background:rgba(91,140,158,.2);color:var(--sport);}
   .tag.multi{background:rgba(192,105,63,.2);color:var(--multi);}
   .tag.rain{background:rgba(91,140,158,.2);color:var(--glacier);}
-  .rain-badge{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:11px;font-family:'IBM Plex Mono',monospace;}
+  .rain-badge{display:inline-block;margin:6px 6px 0 0;padding:3px 9px;border-radius:999px;font-size:11px;font-family:'IBM Plex Mono',monospace;}
   .rain-badge.good{background:rgba(127,174,110,.18);color:var(--good);}
   .rain-badge.bad{background:rgba(182,84,63,.18);color:var(--bad);}
   .grade{font-family:'IBM Plex Mono',monospace;color:var(--sun-soft);font-weight:600;}
@@ -268,6 +268,8 @@ const I18N = {
     tagRainYes: '☔防雨', tagRainPartial: '☔部分防雨',
     rainBadgeYes: '☔ 官网标注防雨', rainBadgePartial: '☔ 官网标注部分防雨', rainBadgeNo: '☔ 官网标注不防雨',
     rainBadgeSome: (n)=>`☔ 有 ${n} 条线路标了防雨/部分防雨(见下面线路列表)`,
+    navigate: '导航到这里',
+    closureWarn: '⚠ 部分区域有季节性关闭(见下方分区/朝向标注),去之前务必核实',
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
     feedbackLink: '发现信息有误 / 想补充?去 GitHub 反馈 →',
@@ -277,7 +279,7 @@ const I18N = {
     histTitle: '难度分布(按数字前缀粗略统计)',
     loading: (name)=>`加载 ${name} 中…`,
     metaFacing: '向',
-    dirs: ['北','东北','东','东南','南','西南','西','北西'],
+    dirs: ['北','东北','东','东南','南','西南','西','西北'],
     locale: 'zh-CN'
   },
   en: {
@@ -299,6 +301,8 @@ const I18N = {
     tagRainYes: '☔rain-safe', tagRainPartial: '☔partial shelter',
     rainBadgeYes: '☔ Source says rain-protected', rainBadgePartial: '☔ Source says partially rain-protected', rainBadgeNo: '☔ Source says not rain-safe',
     rainBadgeSome: (n)=>`☔ ${n} route(s) marked rain-safe/partial (see route list below)`,
+    navigate: 'Directions',
+    closureWarn: '⚠ Some areas have seasonal closures (see sector/face notes below) — verify before you go',
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
     feedbackLink: 'Spot an error / have something to add? Open a GitHub issue →',
@@ -330,6 +334,8 @@ const I18N = {
     tagRainYes: '☔regensicher', tagRainPartial: '☔teilw. regensicher',
     rainBadgeYes: '☔ Laut Quelle regengeschützt', rainBadgePartial: '☔ Laut Quelle teilweise regengeschützt', rainBadgeNo: '☔ Laut Quelle nicht regensicher',
     rainBadgeSome: (n)=>`☔ ${n} Route(n) als regensicher/teilweise markiert (siehe Routenliste unten)`,
+    navigate: 'Anfahrt',
+    closureWarn: '⚠ Teilbereiche mit saisonalen Sperrungen (siehe Sektor-/Wandhinweise unten) — vor der Anfahrt prüfen',
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? GitHub-Issue erstellen →',
@@ -4043,11 +4049,20 @@ async function buildSheetHTML(c){
   else if(c.rain==='no') rainBadge = `<div class="rain-badge bad">${t('rainBadgeNo')}</div>`;
   else if(rainRouteCount>0) rainBadge = `<div class="rain-badge good">${t('rainBadgeSome')(rainRouteCount)}</div>`;
 
+  // 海拔:天气 API 的响应里自带(是气象格点的海拔,不是岩壁精确海拔,所以标"≈")
+  const elev = (wx && typeof wx.elevation==='number') ? Math.round(wx.elevation) : null;
+  // 季节性关闭警告:从已录入的分区名/朝向标注里检测"关闭"字样,有就在头部亮警告条(数据本来就有,只是之前埋得深)
+  const hasClosures = c.routes.some(r=>r.sector && r.sector.includes('关闭'))
+    || c.faces.some(f=>f.label && f.label.includes('关闭'));
+  const closureBadge = hasClosures ? `<div class="rain-badge bad">${t('closureWarn')}</div>` : '';
+
   return `
     <div class="crag-head">
       <div>
         <h2>${c.name}</h2>
-        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · ${bestLbl} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})</div>
+        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)}${elev!=null?` · ≈${elev} m`:''} · <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">${t('navigate')} ↗</a></div>
+        <div class="loc">${bestLbl} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})</div>
+        ${closureBadge}
         ${rainBadge}
       </div>
       <div class="score">
