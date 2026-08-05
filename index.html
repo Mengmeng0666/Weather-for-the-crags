@@ -87,12 +87,15 @@
     box-shadow:0 3px 10px rgba(0,0,0,.5);
   }
   .fab{
-    position:fixed;right:18px;bottom:18px;z-index:1200;
-    width:52px;height:52px;border-radius:50%;
-    background:var(--sun);color:#1c2321;border:none;font-size:26px;font-weight:700;
-    box-shadow:0 6px 18px rgba(0,0,0,.4);
-    display:flex;align-items:center;justify-content:center;text-decoration:none;
+    position:fixed;right:14px;bottom:14px;z-index:1200;
+    display:flex;align-items:center;gap:6px;
+    padding:8px 14px;border-radius:999px;
+    background:var(--panel);border:1px solid var(--line);
+    color:var(--ink-dim);font-size:12px;font-family:'IBM Plex Mono',monospace;
+    text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.45);
   }
+  .fab:hover{border-color:var(--sun);color:var(--sun-soft);}
+  .fab .fab-ico{color:var(--sun-soft);font-size:14px;line-height:1;}
   .feedback-link{
     display:inline-block;margin:0 18px 18px;padding:10px 16px;border-radius:9px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--ink-dim);
@@ -253,7 +256,7 @@
 
 <div id="map"></div>
 
-<a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场">✉️</a>
+<a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场"><span class="fab-ico">✉</span><span id="fabLabel">反馈</span></a>
 
 <div class="sheet-backdrop" id="sheetBackdrop"></div>
 <div class="sheet" id="sheet">
@@ -299,7 +302,8 @@ const I18N = {
     closureWarn: '⚠ 部分区域有攀爬限制或季节性关闭(见下方分区标注),去之前务必核实',
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
-    feedbackLink: '发现信息有误 / 想补充?去 GitHub 反馈 →',
+    feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
+    fabLabel: '反馈',
     feedbackTitlePrefix: '岩场信息反馈:',
     searchPlaceholder: '搜索岩场 / 分区…',
     searchNoResults: '没有匹配的岩场',
@@ -340,7 +344,8 @@ const I18N = {
     closureWarn: '⚠ Some areas have access restrictions or seasonal closures (see sector notes below) — verify before you go',
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
-    feedbackLink: 'Spot an error / have something to add? Open a GitHub issue →',
+    feedbackLink: 'Spot an error / have something to add? Email me →',
+    fabLabel: 'Feedback',
     feedbackTitlePrefix: 'Crag feedback: ',
     searchPlaceholder: 'Search crags / sectors…',
     searchNoResults: 'No matching crags',
@@ -381,7 +386,8 @@ const I18N = {
     closureWarn: '⚠ Teilbereiche mit Kletterbeschränkungen oder saisonalen Sperrungen (siehe Sektorhinweise unten) — vor der Anfahrt prüfen',
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
-    feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? GitHub-Issue erstellen →',
+    feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
+    fabLabel: 'Feedback',
     feedbackTitlePrefix: 'Feedback zum Fels: ',
     searchPlaceholder: 'Fels / Sektor suchen…',
     searchNoResults: 'Keine Treffer',
@@ -439,6 +445,7 @@ function applyStaticI18n(){
     el.append(document.createTextNode(t(key)));
   });
   document.querySelector('.fab').title = t('fabTitle');
+  document.getElementById('fabLabel').textContent = t('fabLabel');
   document.getElementById('cragSearch').placeholder = t('searchPlaceholder');
   document.getElementById('infoBtn').title = t('infoTitle');
   document.getElementById('infoTitle').textContent = t('infoTitle');
@@ -5705,7 +5712,7 @@ async function buildSheetHTML(c){
       ${noRoutes}
     </div>
     ${CRAG_SOURCES[c.id]?`<div class="hint" style="padding:0 18px 4px;">${t('sourceLabel')}: <a href="${CRAG_SOURCES[c.id].url}" target="_blank" rel="noopener">${CRAG_SOURCES[c.id].name} ↗</a></div>`:''}
-    <a class="feedback-link" href="https://github.com/Mengmeng0666/Weather-for-the-crags/issues/new?title=${encodeURIComponent(t('feedbackTitlePrefix')+c.name)}" target="_blank" rel="noopener">${t('feedbackLink')}</a>
+    <a class="feedback-link" href="mailto:kontakt@felsradar.com?subject=${encodeURIComponent(t('feedbackTitlePrefix')+c.name)}">${t('feedbackLink')}</a>
   `;
 }
 
