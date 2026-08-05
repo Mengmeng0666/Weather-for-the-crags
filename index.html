@@ -311,6 +311,7 @@ const I18N = {
     closureWarn: '⚠ 部分区域有攀爬限制或季节性关闭(见下方分区标注),去之前务必核实',
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
+    noFaceData: '壁面朝向数据暂缺,日照无法估算',
     feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
     fabLabel: '想加新岩场 / 有反馈?发邮件 →',
     feedbackTitlePrefix: '岩场信息反馈:',
@@ -353,6 +354,7 @@ const I18N = {
     closureWarn: '⚠ Some areas have access restrictions or seasonal closures (see sector notes below) — verify before you go',
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
+    noFaceData: 'No wall-orientation data yet — sun hours unavailable',
     feedbackLink: 'Spot an error / have something to add? Email me →',
     fabLabel: 'Missing a crag / feedback? Email me →',
     feedbackTitlePrefix: 'Crag feedback: ',
@@ -395,6 +397,7 @@ const I18N = {
     closureWarn: '⚠ Teilbereiche mit Kletterbeschränkungen oder saisonalen Sperrungen (siehe Sektorhinweise unten) — vor der Anfahrt prüfen',
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
+    noFaceData: 'Noch keine Daten zur Wandausrichtung — Sonnenstunden nicht berechenbar',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
     fabLabel: 'Fels fehlt / Feedback? Schreib mir →',
     feedbackTitlePrefix: 'Feedback zum Fels: ',
@@ -3347,9 +3350,49 @@ const DEFAULT_CRAGS = [
       {name:'Domino', grade:'7', type:'sport', dir:0, sector:'Kiefernzapfen'},
       {name:'Moskito', grade:'7+', type:'sport', dir:0, sector:'Kiefernzapfen'}
     ] },
-  { id:'frankenjura', name:'Frankenjura (中心代表点,区域内还有上千个独立岩场)', lat:49.7667, lon:11.2833,
-    faces:[{dir:180,label:'南壁(区域内朝向差异很大)'}],
-    routes:[] },
+  // ===== Frankenjura 覆盖网(19个知名岩场,2026-08 加入)=====
+  // 数据来源:OpenStreetMap(ODbL 开放许可,详情页有逐点署名链接)。只取名称/坐标/朝向/难度范围/封禁标注这些 OSM 上有的事实。
+  // 线路清单故意不加:frankenjura.com 明确禁止转载其数据库,线路请用户去源站查。
+  // 朝向:标"来源:OSM 标注"的是社区实测;标"估计"的待核实;faces:[] 表示朝向未知,详情页会显示"数据暂缺",不编造。
+  // 该区域普遍有季节性鸟类保护封禁,OSM 标注了的写进名字/朝向里,没标注的不代表没有——去前务必核实。
+  { id:'fj_streitberger_schild', name:'Streitberger Schild (Wiesenttal)', lat:49.8124, lon:11.2201,
+    faces:[{dir:180,label:'南壁(估计,待核实)'}], routes:[] },
+  { id:'fj_wuergau', name:'Würgauer Wand (Würgau 岩塔群)', lat:49.9805, lon:11.0990,
+    faces:[], routes:[] },
+  { id:'fj_luisenwand', name:'Luisenwand', lat:49.8690, lon:11.1365,
+    faces:[], routes:[] },
+  { id:'fj_roethelfels', name:'Röthelfels (Frankenjura 最大岩壁之一)', lat:49.7480, lon:11.2462,
+    faces:[{dir:180,label:'主壁南向(估计,待核实,岩体多面)'}], routes:[] },
+  { id:'fj_rodenstein', name:'Rodenstein', lat:49.7140, lon:11.1565,
+    faces:[], routes:[] },
+  { id:'fj_richard_wagner_fels', name:'Richard-Wagner-Fels (UIAA 至10-,22条)', lat:49.6902, lon:11.3255,
+    faces:[{dir:225,label:'西南壁(来源:OSM 标注)'}], routes:[] },
+  { id:'fj_zehnerstein', name:'Zehnerstein (UIAA 2~9-,32条)', lat:49.6877, lon:11.3034,
+    faces:[], routes:[] },
+  { id:'fj_eldorado', name:'Eldorado/Spielplatzwand (UIAA 8~11,高难度)', lat:49.6916, lon:11.3414,
+    faces:[], routes:[] },
+  { id:'fj_marientaler', name:'Marientaler Wände (Pottenstein 附近)', lat:49.7757, lon:11.4161,
+    faces:[], routes:[] },
+  { id:'fj_waldkopf', name:'Waldkopf (Action Directe 所在岩壁)', lat:49.6349, lon:11.6026,
+    faces:[], routes:[] },
+  { id:'fj_rabenfels', name:'Rabenfels (UIAA 6-~10;OSM 标注2-6月关闭)', lat:49.6431, lon:11.5989,
+    faces:[], routes:[] },
+  { id:'fj_maximilianswand', name:'Maximilianswand (Krottensee)', lat:49.6348, lon:11.6146,
+    faces:[], routes:[] },
+  { id:'fj_weissenstein', name:'Weißenstein (Hartenstein)', lat:49.6346, lon:11.5319,
+    faces:[], routes:[] },
+  { id:'fj_mittelbergwand', name:'Mittelbergwand (Hirschbachtal,59条;OSM 标注2-6月关闭)', lat:49.5506, lon:11.5278,
+    faces:[{dir:225,label:'西南壁(来源:OSM 标注)'}], routes:[] },
+  { id:'fj_prellstein', name:'Prellstein (UIAA 1~9-,17条)', lat:49.5487, lon:11.5434,
+    faces:[], routes:[] },
+  { id:'fj_riffler', name:'Riffler (Hirschbachtal)', lat:49.5398, lon:11.4751,
+    faces:[], routes:[] },
+  { id:'fj_glatzenstein', name:'Glatzenstein (Hersbrucker Alb)', lat:49.5439, lon:11.3725,
+    faces:[{dir:225,label:'西南壁(估计,待核实)'}], routes:[] },
+  { id:'fj_kuhfels', name:'Kuhfels (UIAA 4~10,9条)', lat:49.4823, lon:11.6508,
+    faces:[{dir:0,label:'北壁(来源:OSM 标注)'}], routes:[] },
+  { id:'fj_kalmusfelsen', name:'Kalmusfelsen', lat:49.4435, lon:11.6964,
+    faces:[], routes:[] },
   // 以下 7 个是 munichclimbs.de 上有、但地图上还没有的区域。先只标坐标和朝向,线路还没加(用户要求先不加)。
   // 坐标取该区域里线路最多/最大的那个岩壁,朝向也是那个岩壁的真实朝向,不是估计。区域里其他分区名字列在注释里,以后要加线路时参考。
   // Tölzer Land 数据来源:munichclimbs.de,全部 9 块岩壁已收录:
@@ -5412,7 +5455,27 @@ const CRAG_SOURCES = {
   gimpelhaus: {name:'climbers-paradise.com', url:'https://www.climbers-paradise.com/en/climbing-regions/tannheimer-tal/multi-pitch/location/gimpel-2173m/'},
   rosenstein_heubach: {name:'outdooractive.com', url:'https://www.outdooractive.com/de/climbingspot/klettergebiet/rosenstein/225263997/'},
   klettersteinbruch_moehren: {name:'frankenjura.com', url:'https://www.frankenjura.com/klettern/poi/17942'},
-  herwartsteine: {name:'thecrag.com', url:'https://www.thecrag.com/climbing/germany/schwaebische-alb/area/249665607'}
+  herwartsteine: {name:'thecrag.com', url:'https://www.thecrag.com/climbing/germany/schwaebische-alb/area/249665607'},
+  // Frankenjura 覆盖网:全部来自 OpenStreetMap(ODbL),逐点链接到对应的 OSM 元素
+  fj_streitberger_schild: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/1313293005'},
+  fj_wuergau: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/6774033387'},
+  fj_luisenwand: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/665622151'},
+  fj_roethelfels: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/38488706'},
+  fj_rodenstein: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/177404357'},
+  fj_richard_wagner_fels: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/737364063'},
+  fj_zehnerstein: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/1280939688'},
+  fj_eldorado: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/433925331'},
+  fj_marientaler: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/13094503561'},
+  fj_waldkopf: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/6431487045'},
+  fj_rabenfels: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/809271963'},
+  fj_maximilianswand: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/8975019258'},
+  fj_weissenstein: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/362247098'},
+  fj_mittelbergwand: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/229012144'},
+  fj_prellstein: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/way/828493828'},
+  fj_riffler: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/1374504422'},
+  fj_glatzenstein: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/278802406'},
+  fj_kuhfels: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/434564613'},
+  fj_kalmusfelsen: {name:'OpenStreetMap', url:'https://www.openstreetmap.org/node/5784657276'}
 };
 
 let crags = load();
@@ -5683,7 +5746,8 @@ async function buildSheetHTML(c){
   const elev = (wx && typeof wx.elevation==='number') ? Math.round(wx.elevation) : null;
   // 限制/关闭警告:从已录入的分区名/朝向标注里检测"关闭"(季节性封禁)或"禁止"(比如 Rosenstein 的 Ausstiegsverbot 顶部禁止翻出)字样,有就在头部亮警告条
   const hasClosures = c.routes.some(r=>r.sector && (r.sector.includes('关闭') || r.sector.includes('禁止')))
-    || c.faces.some(f=>f.label && (f.label.includes('关闭') || f.label.includes('禁止')));
+    || c.faces.some(f=>f.label && (f.label.includes('关闭') || f.label.includes('禁止')))
+    || c.name.includes('关闭') || c.name.includes('禁止');
   const closureBadge = hasClosures ? `<div class="rain-badge bad">${t('closureWarn')}</div>` : '';
   const gs = detectGradeSystem(c.routes);
   const gradeBadge = gs ? `<div class="rain-badge info">${gs==='mixed'?t('gradeSysMixed'):gs==='french'?t('gradeSysFrench'):t('gradeSysUIAA')}</div>` : '';
@@ -5696,7 +5760,7 @@ async function buildSheetHTML(c){
         <h2>${c.name} <button class="fav-btn" data-fav type="button" title="${t('favTitle')}">${favs.has(c.id)?'★':'☆'}</button></h2>
         <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">${t('navigate')} ↗</a></div>
         <div class="loc">${metaLine}</div>
-        <div class="loc">${bestLbl} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})</div>
+        <div class="loc">${bestFace ? `${bestLbl} ${dirToCompass(bestFace.face.dir)} (${bestFace.h.toFixed(1)}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})` : t('noFaceData')}</div>
         ${closureBadge}
         ${rainBadge}
         ${gradeBadge}
