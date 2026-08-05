@@ -1,5 +1,6 @@
-const CACHE = 'alpenwand-v3';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-512-maskable.png', './apple-touch-icon.png'];
+const CACHE = 'alpenwand-v4';
+const ASSETS = ['./index.html', './manifest.json', './fonts.css', './icon-192.png', './icon-512.png', './icon-512-maskable.png', './apple-touch-icon.png',
+  './fonts/IBMPlexMono-400-latin-ext.woff2', './fonts/IBMPlexMono-400-latin.woff2', './fonts/IBMPlexMono-500-latin-ext.woff2', './fonts/IBMPlexMono-500-latin.woff2', './fonts/IBMPlexMono-600-latin-ext.woff2', './fonts/IBMPlexMono-600-latin.woff2', './fonts/Inter-400-latin-ext.woff2', './fonts/Inter-400-latin.woff2', './fonts/Inter-500-latin-ext.woff2', './fonts/Inter-500-latin.woff2', './fonts/Inter-600-latin-ext.woff2', './fonts/Inter-600-latin.woff2', './fonts/SpaceGrotesk-500-latin-ext.woff2', './fonts/SpaceGrotesk-500-latin.woff2', './fonts/SpaceGrotesk-600-latin-ext.woff2', './fonts/SpaceGrotesk-600-latin.woff2', './fonts/SpaceGrotesk-700-latin-ext.woff2', './fonts/SpaceGrotesk-700-latin.woff2'];
 
 self.addEventListener('install', e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
