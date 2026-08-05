@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Felsradar — 岩场条件</title>
+<title>Felsradar — Crag conditions</title>
 <meta name="theme-color" content="#1c2321">
 <meta name="description" content="慕尼黑周边阿尔卑斯岩场的天气、日照、线路信息">
 <link rel="manifest" href="manifest.json">
@@ -311,6 +311,7 @@ const I18N = {
     closureWarn: '⚠ 部分区域有攀爬限制或季节性关闭(见下方分区标注),去之前务必核实',
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
+    docTitle: 'Felsradar — 岩场条件',
     noFaceData: '壁面朝向数据暂缺,日照无法估算',
     feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
     fabLabel: '想加新岩场 / 有反馈?发邮件 →',
@@ -354,6 +355,7 @@ const I18N = {
     closureWarn: '⚠ Some areas have access restrictions or seasonal closures (see sector notes below) — verify before you go',
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
+    docTitle: 'Felsradar — Crag conditions',
     noFaceData: 'No wall-orientation data yet — sun hours unavailable',
     feedbackLink: 'Spot an error / have something to add? Email me →',
     fabLabel: 'Missing a crag / feedback? Email me →',
@@ -397,6 +399,7 @@ const I18N = {
     closureWarn: '⚠ Teilbereiche mit Kletterbeschränkungen oder saisonalen Sperrungen (siehe Sektorhinweise unten) — vor der Anfahrt prüfen',
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
+    docTitle: 'Felsradar — Felsbedingungen',
     noFaceData: 'Noch keine Daten zur Wandausrichtung — Sonnenstunden nicht berechenbar',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
     fabLabel: 'Fels fehlt / Feedback? Schreib mir →',
@@ -429,7 +432,7 @@ const SECTOR_NOTE_MAP = {
   '多段路线(南偏东南向)': {en:'multi-pitch routes (S/SE-facing)', de:'Mehrseillängen (Süd/Südost)'},
   '多段路线(南向)': {en:'multi-pitch routes (S-facing)', de:'Mehrseillängen (Süd)'}
 };
-let LANG = (()=>{ try{ return localStorage.getItem(LANG_KEY) || 'zh'; }catch(e){ return 'zh'; } })();
+let LANG = (()=>{ try{ return localStorage.getItem(LANG_KEY) || 'en'; }catch(e){ return 'en'; } })();
 function t(key){ const v = (I18N[LANG]||I18N.zh)[key]; return v!=null ? v : (I18N.zh[key]||''); }
 function localizeSector(name){
   if(!name || LANG==='zh') return name;
@@ -448,6 +451,8 @@ function setLang(lang){
   if(currentSheetCragId) renderSheetContent();
 }
 function applyStaticI18n(){
+  document.title = t('docTitle');
+  document.documentElement.lang = LANG;
   document.getElementById('subTitle').textContent = t('subtitle');
   document.querySelectorAll('#legendBar > span').forEach((el,i)=>{
     const key = ['legendGood','legendMid','legendBad'][i];
