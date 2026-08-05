@@ -95,7 +95,9 @@
     text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.45);
   }
   .fab:hover{border-color:var(--sun);color:var(--sun-soft);}
-  .fab .fab-ico{color:var(--sun-soft);font-size:14px;line-height:1;}
+  .fab .fab-ico{display:flex;align-items:center;color:var(--sun-soft);flex-shrink:0;}
+  .fab .fab-ico svg{display:block;}
+  @media (max-width:480px){ .fab{max-width:calc(100vw - 28px);} }
   .feedback-link{
     display:inline-block;margin:0 18px 18px;padding:10px 16px;border-radius:9px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--ink-dim);
@@ -256,7 +258,7 @@
 
 <div id="map"></div>
 
-<a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场"><span class="fab-ico">✉</span><span id="fabLabel">反馈</span></a>
+<a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场"><span class="fab-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></span><span id="fabLabel">想加新岩场 / 有反馈?发邮件 →</span></a>
 
 <div class="sheet-backdrop" id="sheetBackdrop"></div>
 <div class="sheet" id="sheet">
@@ -303,7 +305,7 @@ const I18N = {
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
     feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
-    fabLabel: '反馈',
+    fabLabel: '想加新岩场 / 有反馈?发邮件 →',
     feedbackTitlePrefix: '岩场信息反馈:',
     searchPlaceholder: '搜索岩场 / 分区…',
     searchNoResults: '没有匹配的岩场',
@@ -345,7 +347,7 @@ const I18N = {
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
     feedbackLink: 'Spot an error / have something to add? Email me →',
-    fabLabel: 'Feedback',
+    fabLabel: 'Missing a crag / feedback? Email me →',
     feedbackTitlePrefix: 'Crag feedback: ',
     searchPlaceholder: 'Search crags / sectors…',
     searchNoResults: 'No matching crags',
@@ -387,7 +389,7 @@ const I18N = {
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
-    fabLabel: 'Feedback',
+    fabLabel: 'Fels fehlt / Feedback? Schreib mir →',
     feedbackTitlePrefix: 'Feedback zum Fels: ',
     searchPlaceholder: 'Fels / Sektor suchen…',
     searchNoResults: 'Keine Treffer',
