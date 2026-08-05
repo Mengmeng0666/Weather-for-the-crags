@@ -269,6 +269,7 @@ const I18N = {
     rainBadgeYes: '☔ 官网标注防雨', rainBadgePartial: '☔ 官网标注部分防雨', rainBadgeNo: '☔ 官网标注不防雨',
     rainBadgeSome: (n)=>`☔ 有 ${n} 条线路标了防雨/部分防雨(见下面线路列表)`,
     navigate: '导航到这里',
+    elevLabel: '海拔',
     closureWarn: '⚠ 部分区域有攀爬限制或季节性关闭(见下方分区标注),去之前务必核实',
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
@@ -302,6 +303,7 @@ const I18N = {
     rainBadgeYes: '☔ Source says rain-protected', rainBadgePartial: '☔ Source says partially rain-protected', rainBadgeNo: '☔ Source says not rain-safe',
     rainBadgeSome: (n)=>`☔ ${n} route(s) marked rain-safe/partial (see route list below)`,
     navigate: 'Directions',
+    elevLabel: 'Elevation',
     closureWarn: '⚠ Some areas have access restrictions or seasonal closures (see sector notes below) — verify before you go',
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
@@ -335,6 +337,7 @@ const I18N = {
     rainBadgeYes: '☔ Laut Quelle regengeschützt', rainBadgePartial: '☔ Laut Quelle teilweise regengeschützt', rainBadgeNo: '☔ Laut Quelle nicht regensicher',
     rainBadgeSome: (n)=>`☔ ${n} Route(n) als regensicher/teilweise markiert (siehe Routenliste unten)`,
     navigate: 'Anfahrt',
+    elevLabel: 'Höhe',
     closureWarn: '⚠ Teilbereiche mit Kletterbeschränkungen oder saisonalen Sperrungen (siehe Sektorhinweise unten) — vor der Anfahrt prüfen',
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
@@ -4062,7 +4065,8 @@ async function buildSheetHTML(c){
     <div class="crag-head">
       <div>
         <h2>${c.name}</h2>
-        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)}${elev!=null?` · ≈${elev} m`:''} · <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">${t('navigate')} ↗</a></div>
+        <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">${t('navigate')} ↗</a></div>
+        ${elev!=null?`<div class="loc">${t('elevLabel')} ≈${elev} m</div>`:''}
         <div class="loc">${bestLbl} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})</div>
         ${closureBadge}
         ${rainBadge}
