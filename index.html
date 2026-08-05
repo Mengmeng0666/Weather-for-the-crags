@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Alpenwand — 岩场条件</title>
+<title>Felsradar — 岩场条件</title>
 <meta name="theme-color" content="#1c2321">
 <meta name="description" content="慕尼黑周边阿尔卑斯岩场的天气、日照、线路信息">
 <link rel="manifest" href="manifest.json">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Alpenwand">
+<meta name="apple-mobile-web-app-title" content="Felsradar">
 <!-- 字体自托管(原来从 Google Fonts 远程加载,在德国有 GDPR 判例风险,且多一次第三方请求) -->
 <link href="fonts.css" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -244,10 +244,10 @@
 
 <header>
   <div class="header-top">
-    <h1>Alpenwand</h1>
+    <h1>Felsradar</h1>
     <div class="lang-switch" id="langSwitch"></div>
   </div>
-  <div class="sub" id="subTitle">慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路</div>
+  <div class="sub" id="subTitle">慕尼黑周边 · 岩场地图 · 日照 / 天气 / 线路</div>
   <div class="search-wrap">
     <input id="cragSearch" type="search" autocomplete="off">
     <div class="search-results" id="searchResults"></div>
@@ -287,7 +287,7 @@ const LANG_KEY = 'alpenwand_lang';
 // 界面文字的三语字典。岩场名字、线路名字、分区名字(比如 Dohlenfels Links 这种)本来就是德语专有名词,不翻译。
 const I18N = {
   zh: {
-    subtitle: '慕尼黑 · 阿尔卑斯岩场地图 · 日照 / 天气 / 线路',
+    subtitle: '慕尼黑周边 · 岩场地图 · 日照 / 天气 / 线路',
     legendGood: '指数≥70 适合去',
     dayToday: '今天', scoreWord: '指数',
     bestOrientationDay: (wd)=>`${wd}最佳朝向`,
@@ -329,7 +329,7 @@ const I18N = {
     locale: 'zh-CN'
   },
   en: {
-    subtitle: 'Munich · Alpine crag map · Sun / weather / routes',
+    subtitle: 'Munich area · Crag map · Sun / weather / routes',
     legendGood: 'Score ≥70 · good',
     dayToday: 'Today', scoreWord: 'score',
     bestOrientationDay: (wd)=>`Best face ${wd}`,
@@ -371,7 +371,7 @@ const I18N = {
     locale: 'en-US'
   },
   de: {
-    subtitle: 'München · Alpine Kletterfelsen-Karte · Sonne / Wetter / Routen',
+    subtitle: 'Rund um München · Kletterfelsen-Karte · Sonne / Wetter / Routen',
     legendGood: 'Wert ≥70 · gut',
     dayToday: 'Heute', scoreWord: 'Wert',
     bestOrientationDay: (wd)=>`Beste Wand am ${wd}`,

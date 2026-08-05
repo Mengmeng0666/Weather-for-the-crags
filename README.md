@@ -1,4 +1,6 @@
-# Alpenwand — 阿尔卑斯岩场天气/日照面板
+# Felsradar — 慕尼黑周边岩场天气/日照面板
+
+线上地址:[felsradar.com](https://felsradar.com)(曾用名 Alpenwand)
 
 一个纯静态网页(PWA),不需要后端、不需要 API key 就能跑起来。
 

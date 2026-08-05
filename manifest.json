@@ -1,7 +1,7 @@
 {
-  "name": "Alpenwand — 岩场条件",
-  "short_name": "Alpenwand",
-  "description": "慕尼黑周边阿尔卑斯岩场的天气、日照、线路信息",
+  "name": "Felsradar — 岩场条件",
+  "short_name": "Felsradar",
+  "description": "慕尼黑周边岩场的天气、日照、线路信息",
   "id": "/Weather-for-the-crags/",
   "start_url": "./index.html",
   "scope": "./",
