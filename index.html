@@ -270,6 +270,7 @@ const I18N = {
     rainBadgeSome: (n)=>`☔ 有 ${n} 条线路标了防雨/部分防雨(见下面线路列表)`,
     navigate: '导航到这里',
     elevLabel: '海拔',
+    sourceLabel: '线路数据来源',
     closureWarn: '⚠ 部分区域有攀爬限制或季节性关闭(见下方分区标注),去之前务必核实',
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
@@ -304,6 +305,7 @@ const I18N = {
     rainBadgeSome: (n)=>`☔ ${n} route(s) marked rain-safe/partial (see route list below)`,
     navigate: 'Directions',
     elevLabel: 'Elevation',
+    sourceLabel: 'Route data source',
     closureWarn: '⚠ Some areas have access restrictions or seasonal closures (see sector notes below) — verify before you go',
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
@@ -338,6 +340,7 @@ const I18N = {
     rainBadgeSome: (n)=>`☔ ${n} Route(n) als regensicher/teilweise markiert (siehe Routenliste unten)`,
     navigate: 'Anfahrt',
     elevLabel: 'Höhe',
+    sourceLabel: 'Quelle der Routendaten',
     closureWarn: '⚠ Teilbereiche mit Kletterbeschränkungen oder saisonalen Sperrungen (siehe Sektorhinweise unten) — vor der Anfahrt prüfen',
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
@@ -3830,6 +3833,32 @@ const DEFAULT_CRAGS = [
     routes:[] }
 ];
 
+// 每个岩场的线路数据来源(在详情页展示并回链)。这些站点是数据的真正劳动者,标注出处是最起码的尊重;
+// 用户也能去源站看我们没有的东西(照片、topo 图、打卡统计)。最早手填的 5 个岩场(kochel 等)和占位点没有外部来源,不在此列。
+const CRAG_SOURCES = {
+  gramai: {name:'climbers-paradise.com', url:'https://www.climbers-paradise.com/en/climbing-regions/achensee/multi-pitch/location/gramai/'},
+  flintsbach: {name:'munichclimbs.de', url:'https://munichclimbs.de/Zwischen_Rosenheim_und_Kufstein/Flintsbach'},
+  morsbach: {name:'munichclimbs.de', url:'https://munichclimbs.de/Kufstein/Morsbach'},
+  labertal: {name:'juraclimbs.de', url:'https://juraclimbs.de/areas/3-labertal'},
+  naabtal: {name:'juraclimbs.de', url:'https://juraclimbs.de/areas/4-naabtal'},
+  kallmuenz: {name:'juraclimbs.de', url:'https://juraclimbs.de/areas/5-kallmunz'},
+  altmuehltal_konstein: {name:'munichclimbs.de', url:'https://munichclimbs.de/Konstein'},
+  altmuehltal_dollnstein: {name:'munichclimbs.de', url:'https://munichclimbs.de/Konstein/Burgstein'},
+  altmuehltal_weltenburg: {name:'juraclimbs.de', url:'https://juraclimbs.de/areas/2-donaudurchbruch'},
+  altmuehltal_prunn_essing: {name:'juraclimbs.de', url:'https://juraclimbs.de/areas/1-altmuhltal'},
+  toelzer_land: {name:'munichclimbs.de', url:'https://munichclimbs.de/Toelzer_Land'},
+  reutte: {name:'munichclimbs.de', url:'https://munichclimbs.de/Reutte'},
+  oberammergau: {name:'munichclimbs.de', url:'https://munichclimbs.de/Oberammergau'},
+  mangfallgebirge: {name:'munichclimbs.de', url:'https://munichclimbs.de/Mangfallgebirge'},
+  chiemgau: {name:'munichclimbs.de', url:'https://munichclimbs.de/Chiemgau'},
+  eichenau: {name:'munichclimbs.de', url:'https://munichclimbs.de/Eichenau'},
+  garmisch: {name:'munichclimbs.de', url:'https://munichclimbs.de/Garmisch'},
+  gimpelhaus: {name:'climbers-paradise.com', url:'https://www.climbers-paradise.com/en/climbing-regions/tannheimer-tal/multi-pitch/location/gimpel-2173m/'},
+  rosenstein_heubach: {name:'outdooractive.com', url:'https://www.outdooractive.com/de/climbingspot/klettergebiet/rosenstein/225263997/'},
+  klettersteinbruch_moehren: {name:'frankenjura.com', url:'https://www.frankenjura.com/klettern/poi/17942'},
+  herwartsteine: {name:'thecrag.com', url:'https://www.thecrag.com/climbing/germany/schwaebische-alb/area/249665607'}
+};
+
 let crags = load();
 let filter = {type:'all', rain:false};
 // 判断一个岩场算不算"雨天可爬":岩场整体标了 yes/partial,或者里面至少有一个分区/线路标了 yes/partial
@@ -4091,6 +4120,7 @@ async function buildSheetHTML(c){
       ${routesByType.multi.length?`<details open><summary>${t('multiRoutes')} (${routesByType.multi.length})</summary>${routeListMaybeGrouped(routesByType.multi)}</details>`:''}
       ${noRoutes}
     </div>
+    ${CRAG_SOURCES[c.id]?`<div class="hint" style="padding:0 18px 4px;">${t('sourceLabel')}: <a href="${CRAG_SOURCES[c.id].url}" target="_blank" rel="noopener">${CRAG_SOURCES[c.id].name} ↗</a></div>`:''}
     <a class="feedback-link" href="https://github.com/Mengmeng0666/Weather-for-the-crags/issues/new?title=${encodeURIComponent(t('feedbackTitlePrefix')+c.name)}" target="_blank" rel="noopener">${t('feedbackLink')}</a>
   `;
 }
