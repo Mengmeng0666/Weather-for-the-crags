@@ -208,6 +208,24 @@
   .gh-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;max-width:34px;}
   .gh-bar{width:100%;background:var(--sport);border-radius:3px 3px 0 0;min-height:2px;}
   .gh-lbl{font-size:9px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;}
+  .gh-click{cursor:pointer;}
+  .gh-click:hover .gh-bar{background:var(--glacier);}
+  .gh-sel .gh-bar{background:var(--sun);}
+  .gh-sel .gh-lbl{color:var(--sun-soft);font-weight:700;}
+  .rain-badge.info{background:rgba(91,140,158,.18);color:var(--glacier);}
+  .fav-btn{background:none;border:none;color:var(--sun-soft);font-size:20px;cursor:pointer;vertical-align:middle;padding:0 2px;line-height:1;}
+  .legend .imp-link.imp-second{margin-left:12px;}
+  .info-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1900;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .info-backdrop.open{opacity:1;pointer-events:auto;}
+  .info-panel{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.97);
+    width:min(92vw,440px);max-height:80vh;overflow-y:auto;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:20px 22px;z-index:1901;opacity:0;pointer-events:none;transition:opacity .2s;
+    font-size:13.5px;line-height:1.7;
+  }
+  .info-panel.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+  .info-panel h3{margin:0 0 10px;font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--sun-soft);}
 </style>
 </head>
 <body>
@@ -229,7 +247,8 @@
   <span><span class="dot" style="background:var(--good)"></span>指数≥70 适合去</span>
   <span><span class="dot" style="background:var(--mid)"></span>40–69 看情况</span>
   <span><span class="dot" style="background:var(--bad)"></span>&lt;40 大概率湿</span>
-  <a class="imp-link" href="impressum.html">Impressum</a>
+  <a class="imp-link" href="#" id="infoBtn">ℹ️</a>
+  <a class="imp-link imp-second" href="impressum.html">Impressum</a>
 </div>
 
 <div id="map"></div>
@@ -240,6 +259,12 @@
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
   <div id="sheetContent"></div>
+</div>
+
+<div class="info-backdrop" id="infoBackdrop"></div>
+<div class="info-panel" id="infoPanel">
+  <h3 id="infoTitle"></h3>
+  <div id="infoContent"></div>
 </div>
 
 <script>
@@ -278,7 +303,13 @@ const I18N = {
     feedbackTitlePrefix: '岩场信息反馈:',
     searchPlaceholder: '搜索岩场 / 分区…',
     searchNoResults: '没有匹配的岩场',
-    histTitle: '难度分布(按数字前缀粗略统计)',
+    histTitle: '难度分布(按数字前缀粗略统计,点柱子筛选)',
+    gradeSysUIAA: '难度: UIAA 制', gradeSysFrench: '难度: 法国制', gradeSysMixed: '难度: UIAA+法国制混用',
+    onlyGrade: (g)=>`只看难度 ${g} 档`,
+    distMunich: (km)=>`距慕尼黑直线 ~${km} km`,
+    favFilter: '★ 收藏', favTitle: '收藏 / 取消收藏',
+    infoTitle: '算法说明',
+    infoHtml: '<b>今日指数怎么算?</b><br>从 100 分起扣:降水概率 ×0.9,云量 ×0.35。≥70 绿 / 40–69 黄 / &lt;40 红。<br><br><b>日照小时</b>按太阳方位角是否落在壁面朝向 ±95° 内估算,<b>没有</b>考虑地形互相遮挡,仅供参考。<br><br>天气数据来自 Open-Meteo;线路数据来自各来源网站(详情页有标注),可能过时或有误。攀岩风险自负,出发前请核实封禁与实地条件。',
     loading: (name)=>`加载 ${name} 中…`,
     metaFacing: '向',
     dirs: ['北','东北','东','东南','南','西南','西','西北'],
@@ -313,7 +344,13 @@ const I18N = {
     feedbackTitlePrefix: 'Crag feedback: ',
     searchPlaceholder: 'Search crags / sectors…',
     searchNoResults: 'No matching crags',
-    histTitle: 'Grade distribution (rough, by leading number)',
+    histTitle: 'Grade distribution (rough, by leading number — tap a bar to filter)',
+    gradeSysUIAA: 'Grades: UIAA', gradeSysFrench: 'Grades: French', gradeSysMixed: 'Grades: mixed UIAA + French',
+    onlyGrade: (g)=>`Grade ${g}.x only`,
+    distMunich: (km)=>`~${km} km from Munich (straight line)`,
+    favFilter: '★ Favorites', favTitle: 'Add / remove favorite',
+    infoTitle: 'How this works',
+    infoHtml: '<b>The daily score:</b> start at 100, subtract precipitation probability ×0.9 and cloud cover ×0.35. ≥70 green / 40–69 yellow / &lt;40 red.<br><br><b>Sun hours</b> are estimated from whether the sun azimuth falls within ±95° of the wall aspect — terrain shading is <b>not</b> modeled.<br><br>Weather: Open-Meteo. Route data comes from the sources credited on each crag and may be outdated or wrong. Climb at your own risk; verify closures and conditions before you go.',
     loading: (name)=>`Loading ${name}…`,
     metaFacing: '-facing',
     dirs: ['N','NE','E','SE','S','SW','W','NW'],
@@ -348,7 +385,13 @@ const I18N = {
     feedbackTitlePrefix: 'Feedback zum Fels: ',
     searchPlaceholder: 'Fels / Sektor suchen…',
     searchNoResults: 'Keine Treffer',
-    histTitle: 'Schwierigkeitsverteilung (grob, nach führender Zahl)',
+    histTitle: 'Schwierigkeitsverteilung (grob, nach führender Zahl — Balken antippen zum Filtern)',
+    gradeSysUIAA: 'Skala: UIAA', gradeSysFrench: 'Skala: Französisch', gradeSysMixed: 'Skala: UIAA + Französisch gemischt',
+    onlyGrade: (g)=>`Nur Grad ${g}`,
+    distMunich: (km)=>`~${km} km Luftlinie von München`,
+    favFilter: '★ Favoriten', favTitle: 'Favorit hinzufügen / entfernen',
+    infoTitle: 'So funktioniert es',
+    infoHtml: '<b>Der Tageswert:</b> Start bei 100, abgezogen werden Niederschlagswahrscheinlichkeit ×0,9 und Bewölkung ×0,35. ≥70 grün / 40–69 gelb / &lt;40 rot.<br><br><b>Sonnenstunden</b> werden geschätzt (Sonnenazimut innerhalb ±95° der Wandausrichtung) — Geländeabschattung ist <b>nicht</b> modelliert.<br><br>Wetter: Open-Meteo. Routendaten stammen aus den je Fels genannten Quellen und können veraltet oder fehlerhaft sein. Klettern auf eigene Gefahr; Sperrungen und Bedingungen vorab prüfen.',
     loading: (name)=>`${name} wird geladen…`,
     metaFacing: '-seitig',
     dirs: ['Nord','Nordost','Ost','Südost','Süd','Südwest','West','Nordwest'],
@@ -397,6 +440,9 @@ function applyStaticI18n(){
   });
   document.querySelector('.fab').title = t('fabTitle');
   document.getElementById('cragSearch').placeholder = t('searchPlaceholder');
+  document.getElementById('infoBtn').title = t('infoTitle');
+  document.getElementById('infoTitle').textContent = t('infoTitle');
+  document.getElementById('infoContent').innerHTML = t('infoHtml');
   document.getElementById('langSwitch').innerHTML = ['zh','en','de'].map(l=>
     `<button data-lang="${l}" class="${LANG===l?'active':''}">${l.toUpperCase()}</button>`
   ).join('');
@@ -5353,7 +5399,42 @@ const CRAG_SOURCES = {
 };
 
 let crags = load();
-let filter = {type:'all', rain:false};
+let filter = {type:'all', rain:false, fav:false};
+
+// 收藏的岩场 id,存在本地 localStorage(只在本设备生效,没有云同步)
+const FAVS_KEY = 'alpenwand_favs';
+let favs = new Set();
+try{ favs = new Set(JSON.parse(localStorage.getItem(FAVS_KEY)||'[]')); }catch(e){}
+function toggleFav(id){
+  if(favs.has(id)) favs.delete(id); else favs.add(id);
+  try{ localStorage.setItem(FAVS_KEY, JSON.stringify([...favs])); }catch(e){}
+}
+
+// 直线距离(哈弗辛公式),参照点是慕尼黑市中心 Marienplatz 附近;显示时明确标"直线",不冒充车程
+function distFromMunich(lat, lon){
+  const R=6371, la1=48.137*Math.PI/180, la2=lat*Math.PI/180;
+  const dLa=(lat-48.137)*Math.PI/180, dLo=(lon-11.575)*Math.PI/180;
+  const a=Math.sin(dLa/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLo/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+// 按线路难度写法自动判断该岩场用哪套难度体系:法国制带字母(6a/7c+),UIAA 纯数字加正负号(7+/8-)。
+// 两种都≥3条算"混用"(比如 Chiemgau 不同年代开发的分区确实混用)。判断是数出来的,不是手标的。
+function detectGradeSystem(list){
+  let fr=0, ui=0;
+  list.forEach(r=>{
+    const g=(r.grade||'').trim();
+    if(/^\d+[abc]/i.test(g)) fr++;
+    else if(/^\d/.test(g)) ui++;
+  });
+  // "混用"要求两种写法都占15%以上——不然像 Morsbach 那种纯法国制但低难度线懒得写字母("Rampe 4")的会被误判
+  const tot = fr+ui;
+  if(fr>=3 && ui>=3 && fr>=tot*0.15 && ui>=tot*0.15) return 'mixed';
+  if(fr>ui && fr>0) return 'french';
+  if(ui>0) return 'uiaa';
+  if(fr>0) return 'french';
+  return null;
+}
 // 判断一个岩场算不算"雨天可爬":岩场整体标了 yes/partial,或者里面至少有一个分区/线路标了 yes/partial
 function cragHasRainOption(c){
   if(c.rain==='yes' || c.rain==='partial') return true;
@@ -5362,6 +5443,7 @@ function cragHasRainOption(c){
 let map, markers = {};
 let currentSheetCragId = null;
 let sheetFaceFilter = null; // 点罗盘上某个朝向,只看这个朝向的线路;再点一次或点"清除筛选"恢复全部
+let sheetGradeFilter = null; // 点难度直方图某根柱子,只看那个难度档的线路;和朝向筛选可叠加
 let selectedDay = 0; // 0=今天,1-3=之后三天。地图圆点/聚合分数、详情页头部都跟着这个切换(预报数据本来就有4天,只是以前只显示第一天)
 
 // 从天气数据里取第 i 天的分数;数据缺失时返回 null(圆点显示灰色"—"),不假装是好天
@@ -5524,7 +5606,9 @@ async function buildSheetHTML(c){
     </div>`;
   }).join('');
 
-  const activeRoutes = sheetFaceFilter==null ? c.routes : c.routes.filter(r=>r.dir===sheetFaceFilter);
+  // 两级筛选:先按朝向(点罗盘),再按难度档(点直方图柱子),可叠加
+  const faceRoutes = sheetFaceFilter==null ? c.routes : c.routes.filter(r=>r.dir===sheetFaceFilter);
+  const activeRoutes = sheetGradeFilter==null ? faceRoutes : faceRoutes.filter(r=>parseInt(r.grade)===sheetGradeFilter);
   const routesByType = { sport: activeRoutes.filter(r=>r.type==='sport'), multi: activeRoutes.filter(r=>r.type==='multi') };
   function routeList(list){
     return list.map(r=>`
@@ -5556,19 +5640,21 @@ async function buildSheetHTML(c){
     for(let k=keys[0]; k<=keys[keys.length-1]; k++){
       const v = buckets[k]||0;
       const h = v ? Math.max(4, Math.round(v/max*34)) : 2;
-      bars += `<div class="gh-col"><div class="gh-bar" style="height:${h}px" title="${k}: ${v}"></div><div class="gh-lbl">${k}</div></div>`;
+      const sel = sheetGradeFilter===k;
+      bars += `<div class="gh-col${v?' gh-click':''}${sel?' gh-sel':''}" ${v?`data-gb="${k}"`:''}><div class="gh-bar" style="height:${h}px" title="${k}: ${v}"></div><div class="gh-lbl">${k}</div></div>`;
     }
     return `<div class="grade-hist"><div class="gh-title">${t('histTitle')}</div><div class="gh-bars">${bars}</div></div>`;
   }
-  const gradeHist = gradeHistogram(activeRoutes);
+  // 直方图按"朝向筛选后"的列表画(不受难度筛选影响,不然点了一根柱子其他柱子就没了)
+  const gradeHist = gradeHistogram(faceRoutes);
   const noRoutes = activeRoutes.length===0
-    ? (sheetFaceFilter!=null
+    ? (sheetFaceFilter!=null || sheetGradeFilter!=null
         ? `<div class="hint">${t('noRoutesThisFace')}</div>`
         : `<div class="hint">${t('noRoutesAtAll')}</div>`)
     : '';
-  const filterChip = sheetFaceFilter!=null
-    ? `<div class="filter-chip"><span>${t('onlyFacing')(dirToCompass(sheetFaceFilter))} (${activeRoutes.length})</span><button data-clear-filter type="button">${t('clearFilter')}</button></div>`
-    : '';
+  let filterChip = '';
+  if(sheetFaceFilter!=null) filterChip += `<div class="filter-chip"><span>${t('onlyFacing')(dirToCompass(sheetFaceFilter))} (${activeRoutes.length})</span><button data-clear-filter type="button">${t('clearFilter')}</button></div>`;
+  if(sheetGradeFilter!=null) filterChip += `<div class="filter-chip"><span>${t('onlyGrade')(sheetGradeFilter)} (${activeRoutes.length})</span><button data-clear-grade type="button">${t('clearFilter')}</button></div>`;
   const rainRouteCount = c.routes.filter(r=>r.rain==='yes'||r.rain==='partial').length;
   let rainBadge = '';
   if(c.rain==='yes') rainBadge = `<div class="rain-badge good">${t('rainBadgeYes')}</div>`;
@@ -5582,16 +5668,21 @@ async function buildSheetHTML(c){
   const hasClosures = c.routes.some(r=>r.sector && (r.sector.includes('关闭') || r.sector.includes('禁止')))
     || c.faces.some(f=>f.label && (f.label.includes('关闭') || f.label.includes('禁止')));
   const closureBadge = hasClosures ? `<div class="rain-badge bad">${t('closureWarn')}</div>` : '';
+  const gs = detectGradeSystem(c.routes);
+  const gradeBadge = gs ? `<div class="rain-badge info">${gs==='mixed'?t('gradeSysMixed'):gs==='french'?t('gradeSysFrench'):t('gradeSysUIAA')}</div>` : '';
+  const km = distFromMunich(c.lat, c.lon);
+  const metaLine = [elev!=null?`${t('elevLabel')} ≈${elev} m`:null, t('distMunich')(km)].filter(Boolean).join(' · ');
 
   return `
     <div class="crag-head">
       <div>
-        <h2>${c.name}</h2>
+        <h2>${c.name} <button class="fav-btn" data-fav type="button" title="${t('favTitle')}">${favs.has(c.id)?'★':'☆'}</button></h2>
         <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">${t('navigate')} ↗</a></div>
-        ${elev!=null?`<div class="loc">${t('elevLabel')} ≈${elev} m</div>`:''}
+        <div class="loc">${metaLine}</div>
         <div class="loc">${bestLbl} ${bestFace?dirToCompass(bestFace.face.dir):'—'} (${bestFace?bestFace.h.toFixed(1):'0'}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})</div>
         ${closureBadge}
         ${rainBadge}
+        ${gradeBadge}
       </div>
       <div class="score">
         <div class="val" style="color:${sc.color}">${sc.val ?? '—'}</div>
@@ -5626,8 +5717,23 @@ async function renderSheetContent(){
   content.querySelectorAll('.face-spoke').forEach(el=>{
     el.onclick = ()=> setFaceFilter(parseFloat(el.dataset.dir));
   });
+  content.querySelectorAll('[data-gb]').forEach(el=>{
+    el.onclick = ()=>{
+      const k = parseInt(el.dataset.gb);
+      sheetGradeFilter = (sheetGradeFilter===k) ? null : k;
+      renderSheetContent();
+    };
+  });
   const clearBtn = content.querySelector('[data-clear-filter]');
   if(clearBtn) clearBtn.onclick = ()=>{ sheetFaceFilter = null; renderSheetContent(); };
+  const clearGrade = content.querySelector('[data-clear-grade]');
+  if(clearGrade) clearGrade.onclick = ()=>{ sheetGradeFilter = null; renderSheetContent(); };
+  const favBtn = content.querySelector('[data-fav]');
+  if(favBtn) favBtn.onclick = ()=>{
+    toggleFav(c.id);
+    renderSheetContent();
+    if(filter.fav) rebuildMarkers();
+  };
 }
 
 function setFaceFilter(dir){
@@ -5640,6 +5746,7 @@ async function openSheet(id){
   if(!c) return;
   currentSheetCragId = id;
   sheetFaceFilter = null;
+  sheetGradeFilter = null;
   const sheet = document.getElementById('sheet');
   const content = document.getElementById('sheetContent');
   content.innerHTML = `<div class="empty">${t('loading')(c.name)}</div>`;
@@ -5673,6 +5780,7 @@ async function rebuildMarkers(){
   const filtered = crags.filter(c=>{
     if(filter.type!=='all' && !c.routes.some(r=>r.type===filter.type)) return false;
     if(filter.rain && !cragHasRainOption(c)) return false;
+    if(filter.fav && !favs.has(c.id)) return false;
     return true;
   });
   const supportsCluster = typeof L.markerClusterGroup === 'function';
@@ -5725,12 +5833,14 @@ function renderFilterBar(){
   }).join('');
   bar.innerHTML = opts.map(([k,l])=>`<div class="chip ${filter.type===k?'active':''}" data-f="${k}">${l}</div>`).join('')
     + `<div class="chip ${filter.rain?'active':''}" id="rainChip">${t('filterRain')}</div>`
+    + `<div class="chip ${filter.fav?'active':''}" id="favChip">${t('favFilter')}</div>`
     + `<span class="chip-sep"></span>`
     + dayChips;
   bar.querySelectorAll('[data-f]').forEach(el=>{
     el.onclick = ()=>{ filter.type = el.dataset.f; renderFilterBar(); rebuildMarkers(); };
   });
   document.getElementById('rainChip').onclick = ()=>{ filter.rain = !filter.rain; renderFilterBar(); rebuildMarkers(); };
+  document.getElementById('favChip').onclick = ()=>{ filter.fav = !filter.fav; renderFilterBar(); rebuildMarkers(); };
   bar.querySelectorAll('[data-day]').forEach(el=>{
     el.onclick = ()=>{
       selectedDay = parseInt(el.dataset.day);
@@ -5771,6 +5881,17 @@ function initSearch(){
   // blur 延迟收起,不然点结果时下拉先消失、点击落空
   input.onblur = ()=> setTimeout(()=>{ box.style.display='none'; }, 200);
 }
+
+// 算法说明面板开关(ℹ️ 在图例栏右侧)
+document.getElementById('infoBtn').onclick = (e)=>{
+  e.preventDefault();
+  document.getElementById('infoPanel').classList.add('open');
+  document.getElementById('infoBackdrop').classList.add('open');
+};
+document.getElementById('infoBackdrop').onclick = ()=>{
+  document.getElementById('infoPanel').classList.remove('open');
+  document.getElementById('infoBackdrop').classList.remove('open');
+};
 
 applyStaticI18n();
 renderFilterBar();
