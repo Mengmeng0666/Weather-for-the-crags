@@ -72,6 +72,13 @@
   }
   .legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
   .legend .imp-link{margin-left:auto;color:var(--ink-dim);text-decoration:none;flex:none;}
+  .legend .imp-link:hover{color:var(--sun-soft);}
+  .legend .info-link{display:inline-flex;align-items:center;gap:5px;}
+  .legend .info-ico{
+    width:15px;height:15px;border:1px solid currentColor;border-radius:50%;flex:none;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:10.5px;line-height:1;
+  }
   @media (max-width:480px){
     .toolbar{gap:6px;padding:10px 14px;}
     .chip{padding:6px 10px;font-size:12px;}
@@ -252,7 +259,7 @@
   <span><span class="dot" style="background:var(--good)"></span>指数≥70 适合去</span>
   <span><span class="dot" style="background:var(--mid)"></span>40–69 看情况</span>
   <span><span class="dot" style="background:var(--bad)"></span>&lt;40 大概率湿</span>
-  <a class="imp-link" href="#" id="infoBtn">ℹ️</a>
+  <a class="imp-link info-link" href="#" id="infoBtn"><span class="info-ico">i</span><span id="infoBtnLabel">算法说明</span></a>
   <a class="imp-link imp-second" href="impressum.html">Impressum</a>
 </div>
 
@@ -450,6 +457,7 @@ function applyStaticI18n(){
   document.getElementById('fabLabel').textContent = t('fabLabel');
   document.getElementById('cragSearch').placeholder = t('searchPlaceholder');
   document.getElementById('infoBtn').title = t('infoTitle');
+  document.getElementById('infoBtnLabel').textContent = t('infoTitle');
   document.getElementById('infoTitle').textContent = t('infoTitle');
   document.getElementById('infoContent').innerHTML = t('infoHtml');
   document.getElementById('langSwitch').innerHTML = ['zh','en','de'].map(l=>
