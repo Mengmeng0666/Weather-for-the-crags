@@ -430,7 +430,21 @@ const SECTOR_NOTE_MAP = {
   '多段路线(东南向)': {en:'multi-pitch routes (SE-facing)', de:'Mehrseillängen (Südost)'},
   '多段路线(北向大长线)': {en:'multi-pitch routes (N-facing, long alpine lines)', de:'Mehrseillängen (Nord, lange alpine Linien)'},
   '多段路线(南偏东南向)': {en:'multi-pitch routes (S/SE-facing)', de:'Mehrseillängen (Süd/Südost)'},
-  '多段路线(南向)': {en:'multi-pitch routes (S-facing)', de:'Mehrseillängen (Süd)'}
+  '多段路线(南向)': {en:'multi-pitch routes (S-facing)', de:'Mehrseillängen (Süd)'},
+  '朝向N/S,树荫背阴,按北向估计': {en:'faces N/S, shady under trees — treated as N (estimate)', de:'N/S ausgerichtet, schattig unter Bäumen — als Nord geschätzt'},
+  '100米高墙,朝向按"sonnig"估为南': {en:'100 m wall, "sonnig" per source — S estimated', de:'100-m-Wand, lt. Quelle "sonnig" — Süd geschätzt'}
+};
+
+// 岩场名括号里的中文备注 → 英/德翻译(和 SECTOR_NOTE_MAP 同机制,localizeCragName 里做子串替换)
+const NAME_NOTE_MAP = {
+  ' 等)': {en:' etc.)', de:' u. a.)'},
+  '高难度': {en:'hard grades', de:'schwere Routen'},
+  'OSM 标注2-6月关闭': {en:'OSM: closed Feb–Jun', de:'lt. OSM Feb.–Juni gesperrt'},
+  'Pottenstein 附近': {en:'near Pottenstein', de:'bei Pottenstein'},
+  'Frankenjura 最大岩壁之一': {en:'one of the biggest walls in Frankenjura', de:'eine der größten Wände im Frankenjura'},
+  'Action Directe 所在岩壁': {en:'home of Action Directe', de:'Fels der Action Directe'},
+  'Würgau 岩塔群': {en:'rock towers of Würgau', de:'Würgauer Felstürme'},
+  'UIAA 至10-': {en:'UIAA up to 10-', de:'UIAA bis 10-'}
 };
 let LANG = (()=>{ try{ return localStorage.getItem(LANG_KEY) || 'en'; }catch(e){ return 'en'; } })();
 function t(key){ const v = (I18N[LANG]||I18N.zh)[key]; return v!=null ? v : (I18N.zh[key]||''); }
@@ -440,6 +454,16 @@ function localizeSector(name){
   for(const zh in SECTOR_NOTE_MAP){
     if(out.includes(zh)) out = out.replace(zh, SECTOR_NOTE_MAP[zh][LANG] || zh);
   }
+  return out;
+}
+function localizeCragName(name){
+  if(!name || LANG==='zh') return name;
+  let out = name;
+  for(const zh in NAME_NOTE_MAP){
+    if(out.includes(zh)) out = out.split(zh).join(NAME_NOTE_MAP[zh][LANG] || zh);
+  }
+  out = out.replace(/(\d+)条/g, LANG==='de' ? '$1 Routen' : '$1 routes');
+  out = out.replace(/,/g, ', ').replace(/;/g, '; ');
   return out;
 }
 function setLang(lang){
@@ -5762,7 +5786,7 @@ async function buildSheetHTML(c){
   return `
     <div class="crag-head">
       <div>
-        <h2>${c.name} <button class="fav-btn" data-fav type="button" title="${t('favTitle')}">${favs.has(c.id)?'★':'☆'}</button></h2>
+        <h2>${localizeCragName(c.name)} <button class="fav-btn" data-fav type="button" title="${t('favTitle')}">${favs.has(c.id)?'★':'☆'}</button></h2>
         <div class="loc">${c.lat.toFixed(3)}, ${c.lon.toFixed(3)} · <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">${t('navigate')} ↗</a></div>
         <div class="loc">${metaLine}</div>
         <div class="loc">${bestFace ? `${bestLbl} ${dirToCompass(bestFace.face.dir)} (${bestFace.h.toFixed(1)}${t('directSun')}${bestFaceReason(days[selectedDay]?.tmax)})` : t('noFaceData')}</div>
@@ -5791,7 +5815,7 @@ async function buildSheetHTML(c){
       ${noRoutes}
     </div>
     ${CRAG_SOURCES[c.id]?`<div class="hint" style="padding:0 18px 4px;">${t('sourceLabel')}: <a href="${CRAG_SOURCES[c.id].url}" target="_blank" rel="noopener">${CRAG_SOURCES[c.id].name} ↗</a></div>`:''}
-    <a class="feedback-link" href="mailto:kontakt@felsradar.com?subject=${encodeURIComponent(t('feedbackTitlePrefix')+c.name)}">${t('feedbackLink')}</a>
+    <a class="feedback-link" href="mailto:kontakt@felsradar.com?subject=${encodeURIComponent(t('feedbackTitlePrefix')+localizeCragName(c.name))}">${t('feedbackLink')}</a>
   `;
 }
 
@@ -5835,7 +5859,7 @@ async function openSheet(id){
   sheetGradeFilter = null;
   const sheet = document.getElementById('sheet');
   const content = document.getElementById('sheetContent');
-  content.innerHTML = `<div class="empty">${t('loading')(c.name)}</div>`;
+  content.innerHTML = `<div class="empty">${t('loading')(localizeCragName(c.name))}</div>`;
   document.getElementById('sheetBackdrop').classList.add('open');
   sheet.classList.add('open');
   await renderSheetContent();
@@ -5900,7 +5924,7 @@ async function rebuildMarkers(){
       iconSize:[38,38], iconAnchor:[19,19]
     });
     const m = L.marker([c.lat, c.lon], {icon, cragScore: (typeof score==='number' ? score : null)});
-    m.bindTooltip(c.name, {direction:'top', offset:[0,-16]});
+    m.bindTooltip(localizeCragName(c.name), {direction:'top', offset:[0,-16]});
     m.on('click', ()=>openSheet(c.id));
     if(clusterGroup){ clusterGroup.addLayer(m); } else { m.addTo(map); }
     markers[c.id] = m;
@@ -5947,12 +5971,12 @@ function initSearch(){
     if(!q){ box.style.display='none'; box.innerHTML=''; return; }
     const hits = [];
     crags.forEach(c=>{
-      if(c.name.toLowerCase().includes(q)){ hits.push({c, sec:null}); return; }
-      const sec = [...new Set(c.routes.map(r=>r.sector).filter(Boolean))].find(s=>s.toLowerCase().includes(q));
+      if(c.name.toLowerCase().includes(q) || localizeCragName(c.name).toLowerCase().includes(q)){ hits.push({c, sec:null}); return; }
+      const sec = [...new Set(c.routes.map(r=>r.sector).filter(Boolean))].find(s=>s.toLowerCase().includes(q) || localizeSector(s).toLowerCase().includes(q));
       if(sec) hits.push({c, sec});
     });
     box.innerHTML = hits.length
-      ? hits.slice(0,8).map(h=>`<div class="search-item" data-id="${h.c.id}">${h.c.name}${h.sec?`<span class="sec">→ ${localizeSector(h.sec)}</span>`:''}</div>`).join('')
+      ? hits.slice(0,8).map(h=>`<div class="search-item" data-id="${h.c.id}">${localizeCragName(h.c.name)}${h.sec?`<span class="sec">→ ${localizeSector(h.sec)}</span>`:''}</div>`).join('')
       : `<div class="search-empty">${t('searchNoResults')}</div>`;
     box.style.display = 'block';
     box.querySelectorAll('.search-item').forEach(el=>{
