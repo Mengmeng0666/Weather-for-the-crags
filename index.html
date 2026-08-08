@@ -93,6 +93,17 @@
     display:inline-flex;align-items:center;justify-content:center;
     font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:10.5px;line-height:1;
   }
+  #introBar{
+    display:flex;align-items:center;gap:12px;flex:none;
+    padding:9px 20px;background:rgba(232,135,30,.12);border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink);line-height:1.5;
+  }
+  #introBar button{
+    margin-left:auto;flex:none;background:none;border:none;color:var(--ink-dim);
+    font-size:14px;cursor:pointer;padding:2px 6px;
+  }
+  #introBar button:hover{color:var(--ink);}
+  @media (max-width:480px){ #introBar{padding:8px 14px;font-size:12px;} }
   @media (max-width:480px){
     .toolbar{gap:6px;padding:10px 14px;}
     .chip{padding:6px 10px;font-size:12px;}
@@ -277,6 +288,12 @@
   <a class="imp-link imp-second" href="impressum.html">Impressum</a>
 </div>
 
+<!-- 首次访问欢迎条:关闭一次后不再出现(localStorage) -->
+<div id="introBar" style="display:none;">
+  <span id="introText"></span>
+  <button id="introClose" type="button" aria-label="Close">✕</button>
+</div>
+
 <div id="map"></div>
 
 <a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场"><span class="fab-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></span><span id="fabLabel">想加新岩场 / 有反馈?发邮件 →</span></a>
@@ -326,6 +343,7 @@ const I18N = {
     onlyFacing: (dir)=>`只看${dir}向`, clearFilter: '清除筛选 ✕',
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
     docTitle: 'Felsradar — 岩场条件',
+    introText: '免费查慕尼黑周边岩场的实时天气、日照和线路——点地图上的任意标记开始。',
     noFaceData: '壁面朝向数据暂缺,日照无法估算',
     feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
     fabLabel: '想加新岩场 / 有反馈?发邮件 →',
@@ -370,6 +388,7 @@ const I18N = {
     onlyFacing: (dir)=>`Only ${dir}-facing`, clearFilter: 'Clear filter ✕',
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
     docTitle: 'Felsradar — Crag conditions',
+    introText: 'Free live weather, sun and route info for climbing crags around Munich — tap any marker to start.',
     noFaceData: 'No wall-orientation data yet — sun hours unavailable',
     feedbackLink: 'Spot an error / have something to add? Email me →',
     fabLabel: 'Missing a crag / feedback? Email me →',
@@ -414,6 +433,7 @@ const I18N = {
     onlyFacing: (dir)=>`Nur ${dir}`, clearFilter: 'Filter löschen ✕',
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
     docTitle: 'Felsradar — Felsbedingungen',
+    introText: 'Wetter, Sonne und Routen für Kletterfelsen rund um München — kostenlos, einfach auf einen Marker tippen.',
     noFaceData: 'Noch keine Daten zur Wandausrichtung — Sonnenstunden nicht berechenbar',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
     fabLabel: 'Fels fehlt / Feedback? Schreib mir →',
@@ -491,6 +511,7 @@ function setLang(lang){
 function applyStaticI18n(){
   document.title = t('docTitle');
   document.documentElement.lang = LANG;
+  document.getElementById('introText').textContent = t('introText');
   document.getElementById('subTitle').textContent = t('subtitle');
   document.querySelectorAll('#legendBar > span').forEach((el,i)=>{
     const key = ['legendGood','legendMid','legendBad'][i];
@@ -6036,6 +6057,18 @@ initSearch();
 initMap();
 rebuildMarkers();
 openFromHash();
+
+// 首次访问欢迎条:没关过就显示,点 ✕ 记住并隐藏
+const INTRO_KEY = 'alpenwand_intro_seen';
+try{
+  if(!localStorage.getItem(INTRO_KEY)){
+    document.getElementById('introBar').style.display = 'flex';
+  }
+}catch(e){}
+document.getElementById('introClose').onclick = ()=>{
+  document.getElementById('introBar').style.display = 'none';
+  try{ localStorage.setItem(INTRO_KEY, '1'); }catch(e){}
+};
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
