@@ -5871,6 +5871,8 @@ async function openSheet(id){
   currentSheetCragId = id;
   sheetFaceFilter = null;
   sheetGradeFilter = null;
+  // 深度链接:把当前岩场写进 URL(#crag=id),这样详情页可以直接分享给别人
+  try{ history.replaceState(null, '', '#crag='+encodeURIComponent(id)); }catch(e){}
   const sheet = document.getElementById('sheet');
   const content = document.getElementById('sheetContent');
   content.innerHTML = `<div class="empty">${t('loading')(localizeCragName(c.name))}</div>`;
@@ -5881,7 +5883,18 @@ async function openSheet(id){
 function closeSheet(){
   document.getElementById('sheet').classList.remove('open');
   document.getElementById('sheetBackdrop').classList.remove('open');
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
 }
+// 别人点开 felsradar.com/#crag=xxx 时:地图定位到该岩场并直接弹出详情页
+function openFromHash(){
+  const m = location.hash.match(/^#crag=([\w-]+)$/);
+  if(!m) return;
+  const c = crags.find(x=>x.id===m[1]);
+  if(!c) return;
+  map.setView([c.lat, c.lon], 12);
+  openSheet(c.id);
+}
+window.addEventListener('hashchange', openFromHash);
 document.getElementById('sheetBackdrop').onclick = closeSheet;
 
 // --- map ---
@@ -6022,6 +6035,7 @@ renderFilterBar();
 initSearch();
 initMap();
 rebuildMarkers();
+openFromHash();
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
