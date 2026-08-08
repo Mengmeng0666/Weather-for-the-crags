@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Felsradar — Crag conditions</title>
 <meta name="theme-color" content="#1c2321">
-<meta name="description" content="Live weather, sun exposure and route info for climbing crags around Munich — Frankenjura, Bavarian Alps and Tyrol. Free, no signup.">
+<meta name="description" content="Kletterwetter for crags around Munich: live weather, sun exposure and route info for Frankenjura, Bavarian Alps and Tyrol. Free, no signup.">
 <link rel="canonical" href="https://felsradar.com/">
 <!-- 社交分享预览卡片(WhatsApp/Signal/微信/Slack 等抓这些标签) -->
 <meta property="og:type" content="website">
@@ -93,17 +93,23 @@
     display:inline-flex;align-items:center;justify-content:center;
     font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:10.5px;line-height:1;
   }
-  #introBar{
-    display:flex;align-items:center;gap:12px;flex:none;
-    padding:9px 20px;background:rgba(232,135,30,.12);border-top:1px solid var(--line);
-    font-size:12.5px;color:var(--ink);line-height:1.5;
+  #welcomeBackdrop{
+    position:fixed;inset:0;z-index:1500;background:rgba(10,14,12,.55);
+    display:flex;align-items:center;justify-content:center;padding:24px;
   }
-  #introBar button{
-    margin-left:auto;flex:none;background:none;border:none;color:var(--ink-dim);
-    font-size:14px;cursor:pointer;padding:2px 6px;
+  #welcomeCard{
+    max-width:400px;width:100%;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:28px 26px 24px;text-align:center;
+    box-shadow:0 18px 50px rgba(0,0,0,.55);
   }
-  #introBar button:hover{color:var(--ink);}
-  @media (max-width:480px){ #introBar{padding:8px 14px;font-size:12px;} }
+  #welcomeCard svg{margin:0 auto 14px;display:block;border-radius:14px;}
+  #welcomeCard h3{margin:0 0 8px;font-size:19px;color:var(--ink);font-family:'Space Grotesk',sans-serif;}
+  #welcomeCard p{margin:0 0 20px;font-size:13.5px;color:var(--ink-dim);line-height:1.6;}
+  #welcomeCard button{
+    padding:11px 26px;border:none;border-radius:999px;background:var(--sun);
+    color:#1c2321;font-size:14px;font-weight:600;cursor:pointer;
+  }
+  #welcomeCard button:hover{filter:brightness(1.08);}
   @media (max-width:480px){
     .toolbar{gap:6px;padding:10px 14px;}
     .chip{padding:6px 10px;font-size:12px;}
@@ -288,13 +294,24 @@
   <a class="imp-link imp-second" href="impressum.html">Impressum</a>
 </div>
 
-<!-- 首次访问欢迎条:关闭一次后不再出现(localStorage) -->
-<div id="introBar" style="display:none;">
-  <span id="introText"></span>
-  <button id="introClose" type="button" aria-label="Close">✕</button>
-</div>
-
 <div id="map"></div>
+
+<!-- 首次访问欢迎卡片:居中弹出,关闭一次后不再出现(localStorage) -->
+<div id="welcomeBackdrop" style="display:none;">
+  <div id="welcomeCard">
+    <svg width="64" height="64" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2a03d"/><stop offset="1" stop-color="#d1730f"/></linearGradient></defs>
+      <rect width="100" height="100" rx="22" fill="#1c2321"/>
+      <circle cx="30" cy="28" r="10" fill="#f2c14e"/>
+      <path d="M4 84 L34 44 L52 68 L60 84 Z" fill="#5b8c9e" opacity="0.75"/>
+      <path d="M28 84 L63 30 L96 84 Z" fill="url(#wg)"/>
+      <path d="M63 30 L70.5 42 L66 42 L61 37 L56.5 42 L55.5 42 Z" fill="#fdf3e0"/>
+    </svg>
+    <h3 id="welcomeTitle"></h3>
+    <p id="introText"></p>
+    <button id="introClose" type="button"></button>
+  </div>
+</div>
 
 <a class="fab" href="mailto:kontakt@felsradar.com?subject=Felsradar%20Feedback" title="反馈 / 建议新增岩场"><span class="fab-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></span><span id="fabLabel">想加新岩场 / 有反馈?发邮件 →</span></a>
 
@@ -346,6 +363,7 @@ const I18N = {
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
     docTitle: 'Felsradar — 岩场条件',
     introText: '免费查慕尼黑周边岩场的实时天气、日照和线路——点地图上的任意标记开始。',
+    welcomeTitle: '欢迎来到 Felsradar', welcomeCta: '开始探索',
     dataUpdatedLabel: '岩场/线路数据最近更新',
     noFaceData: '壁面朝向数据暂缺,日照无法估算',
     feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
@@ -392,6 +410,7 @@ const I18N = {
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
     docTitle: 'Felsradar — Crag conditions',
     introText: 'Free live weather, sun and route info for climbing crags around Munich — tap any marker to start.',
+    welcomeTitle: 'Welcome to Felsradar', welcomeCta: 'Explore the map',
     dataUpdatedLabel: 'Crag & route data last updated',
     noFaceData: 'No wall-orientation data yet — sun hours unavailable',
     feedbackLink: 'Spot an error / have something to add? Email me →',
@@ -438,6 +457,7 @@ const I18N = {
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
     docTitle: 'Felsradar — Felsbedingungen',
     introText: 'Wetter, Sonne und Routen für Kletterfelsen rund um München — kostenlos, einfach auf einen Marker tippen.',
+    welcomeTitle: 'Willkommen bei Felsradar', welcomeCta: 'Karte erkunden',
     dataUpdatedLabel: 'Fels- und Routendaten zuletzt aktualisiert',
     noFaceData: 'Noch keine Daten zur Wandausrichtung — Sonnenstunden nicht berechenbar',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
@@ -517,6 +537,8 @@ function applyStaticI18n(){
   document.title = t('docTitle');
   document.documentElement.lang = LANG;
   document.getElementById('introText').textContent = t('introText');
+  document.getElementById('welcomeTitle').textContent = t('welcomeTitle');
+  document.getElementById('introClose').textContent = t('welcomeCta');
   document.getElementById('subTitle').textContent = t('subtitle');
   document.querySelectorAll('#legendBar > span').forEach((el,i)=>{
     const key = ['legendGood','legendMid','legendBad'][i];
@@ -6064,17 +6086,20 @@ initMap();
 rebuildMarkers();
 openFromHash();
 
-// 首次访问欢迎条:没关过就显示,点 ✕ 记住并隐藏
+// 首次访问欢迎卡片:没关过就显示,点按钮或蒙层记住并隐藏。
+// 通过 #crag= 深度链接进来的人是被朋友直接带到某个岩场的,不打断,跳过卡片。
 const INTRO_KEY = 'alpenwand_intro_seen';
+function dismissWelcome(){
+  document.getElementById('welcomeBackdrop').style.display = 'none';
+  try{ localStorage.setItem(INTRO_KEY, '1'); }catch(e){}
+}
 try{
-  if(!localStorage.getItem(INTRO_KEY)){
-    document.getElementById('introBar').style.display = 'flex';
+  if(!localStorage.getItem(INTRO_KEY) && !location.hash.startsWith('#crag=')){
+    document.getElementById('welcomeBackdrop').style.display = 'flex';
   }
 }catch(e){}
-document.getElementById('introClose').onclick = ()=>{
-  document.getElementById('introBar').style.display = 'none';
-  try{ localStorage.setItem(INTRO_KEY, '1'); }catch(e){}
-};
+document.getElementById('introClose').onclick = dismissWelcome;
+document.getElementById('welcomeBackdrop').onclick = (e)=>{ if(e.target.id==='welcomeBackdrop') dismissWelcome(); };
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
