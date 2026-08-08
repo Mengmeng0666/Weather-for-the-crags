@@ -313,6 +313,8 @@
 <script>
 const STORAGE_KEY = 'alpenwand_crags_v2';
 const LANG_KEY = 'alpenwand_lang';
+// 岩场/线路数据最近一次人工更新的日期,每次导入新数据时手动改这里
+const DATA_UPDATED = '2026-08-06';
 
 // --- i18n ---
 // 界面文字的三语字典。岩场名字、线路名字、分区名字(比如 Dohlenfels Links 这种)本来就是德语专有名词,不翻译。
@@ -344,6 +346,7 @@ const I18N = {
     noRoutesAtAll: '还没有线路数据。', noRoutesThisFace: '这个朝向暂时没有收录线路。',
     docTitle: 'Felsradar — 岩场条件',
     introText: '免费查慕尼黑周边岩场的实时天气、日照和线路——点地图上的任意标记开始。',
+    dataUpdatedLabel: '岩场/线路数据最近更新',
     noFaceData: '壁面朝向数据暂缺,日照无法估算',
     feedbackLink: '发现信息有误 / 想补充?发邮件告诉我 →',
     fabLabel: '想加新岩场 / 有反馈?发邮件 →',
@@ -389,6 +392,7 @@ const I18N = {
     noRoutesAtAll: 'No route data yet.', noRoutesThisFace: 'No routes recorded for this face yet.',
     docTitle: 'Felsradar — Crag conditions',
     introText: 'Free live weather, sun and route info for climbing crags around Munich — tap any marker to start.',
+    dataUpdatedLabel: 'Crag & route data last updated',
     noFaceData: 'No wall-orientation data yet — sun hours unavailable',
     feedbackLink: 'Spot an error / have something to add? Email me →',
     fabLabel: 'Missing a crag / feedback? Email me →',
@@ -434,6 +438,7 @@ const I18N = {
     noRoutesAtAll: 'Noch keine Routendaten.', noRoutesThisFace: 'Für diese Wand sind noch keine Routen erfasst.',
     docTitle: 'Felsradar — Felsbedingungen',
     introText: 'Wetter, Sonne und Routen für Kletterfelsen rund um München — kostenlos, einfach auf einen Marker tippen.',
+    dataUpdatedLabel: 'Fels- und Routendaten zuletzt aktualisiert',
     noFaceData: 'Noch keine Daten zur Wandausrichtung — Sonnenstunden nicht berechenbar',
     feedbackLink: 'Fehler entdeckt / etwas zu ergänzen? Schreib mir eine E-Mail →',
     fabLabel: 'Fels fehlt / Feedback? Schreib mir →',
@@ -526,7 +531,8 @@ function applyStaticI18n(){
   document.getElementById('infoBtn').title = t('infoTitle');
   document.getElementById('infoBtnLabel').textContent = t('infoTitle');
   document.getElementById('infoTitle').textContent = t('infoTitle');
-  document.getElementById('infoContent').innerHTML = t('infoHtml');
+  document.getElementById('infoContent').innerHTML = t('infoHtml')
+    + `<p style="margin:14px 0 0;padding-top:10px;border-top:1px solid var(--line);color:var(--ink-dim);font-size:11.5px;">${t('dataUpdatedLabel')}: ${DATA_UPDATED}</p>`;
   document.getElementById('langSwitch').innerHTML = ['zh','en','de'].map(l=>
     `<button data-lang="${l}" class="${LANG===l?'active':''}">${l.toUpperCase()}</button>`
   ).join('');
